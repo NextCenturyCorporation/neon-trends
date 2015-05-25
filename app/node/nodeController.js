@@ -80,28 +80,21 @@ angular.module("neon-trends-node").controller('nodeController', ["$scope", funct
 				countTimeMap[index][that.entities[i].id] = nodes[entityMap[that.entities[i].id]].count;
 			}
 			
-			statuses[that.entities[i].status_id] = that.entities[i].id;
-			
-
 			nodeTimeMap[index] = nodes.length;
-
-
-			if(statuses[that.entities[i].reply_to_status_id]){
-				var source = entityMap[statuses[that.entities[i].reply_to_status_id]];
-				var target = entityMap[that.entities[i].id];
-				links.push({"source": source, "target": target});
-				linkTimeMap[index] = links.length;
-			}
 			
-			/*
-			//just random links for now
-			if(nodes.length > 1 && randomIntFromInterval(1,10)%10 ===0){
-				var source = randomIntFromInterval(0, nodes.length - 2);
-				links.push({"source": source, "target": nodes.length -1});
-				linkTimeMap[index] = links.length;
+			
+			if(that.entities[i].status_id){
+				statuses[that.entities[i].status_id] = that.entities[i].id;
+				
+				if(statuses[that.entities[i].reply_to_status_id]){
+					var source = entityMap[statuses[that.entities[i].reply_to_status_id]];
+					var target = entityMap[that.entities[i].id];
+					links.push({"source": source, "target": target});
+					linkTimeMap[index] = links.length;
+				}
 			}
-			 	*/
 
+			
 		}
 		while(index < size){
 			nodeTimeMap[index] = nodes.length;
@@ -116,10 +109,5 @@ angular.module("neon-trends-node").controller('nodeController', ["$scope", funct
 			id: entity.id
 		}
 	}
-
-	function randomIntFromInterval(min,max) {
-		return Math.floor(Math.random()*(max-min+1)+min);
-	}
-
 
 }]);
