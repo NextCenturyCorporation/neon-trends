@@ -1,0 +1,21 @@
+<form>
+	<div class="row">
+		<div class="col-xs-6">
+			<div class="input-group">
+				<input type="search" class="form-control" ng-model="search.q.text"
+				       placeholder="Enter @twitterhandle or #hashtag">
+					<span class="input-group-btn">
+					<button class="btn btn-primary" type="submit" ng-click="addTerm()"><span
+							class="glyphicon glyphicon-plus"></span></button>
+						</span>
+			</div>
+		</div>
+		<button class="btn btn-danger" ng-click="clear()">Start over</button>
+
+
+	</div>
+
+	<clauses class="clauses" clauses="search.clauses"></clauses>
+</form>
+
+

@@ -1,0 +1,8 @@
+{
+	"handle": "user.screen_name",
+	"name": "user.name",
+	"description": "text",
+	"time": "created_at",
+	"hashtags": "entities.hashtags",
+	"id": "user.id_str"
+}

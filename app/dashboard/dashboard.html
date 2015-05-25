@@ -1,0 +1,24 @@
+<div ng-if="$root.connection" >
+	<!--<h1>Cognate<sup>3</sup></h1>-->
+	<div class="row fixedContainer">
+		<search range="range" results-handler="onResults"></search>
+	</div>
+	<!--
+	<small>Range is {{corpus.range.start}} to {{corpus.range.end}}</small>
+	-->
+
+	<div class="row main">
+		<div class="col-xs-2 fixedContainer">
+			<filter range="range"></filter>
+		</div>
+		<div class="col-xs-7 col-xs-push-2 fixedContainer" ng-controller="nodeController">
+			nodes:{{data.nodes.length}} links:{{data.links.length}}
+			<node data="data"></node>
+			<timeline range="range"></timeline>
+		</div>
+		<div class="col-xs-push-9 col-xs-3 scrollable">
+			<stream range="range"></stream>
+		</div>
+	</div>
+
+</div>

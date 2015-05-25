@@ -1,0 +1,5 @@
+<span ng-repeat="(key, clause) in clauses">
+	<span class="clause label label-primary" ng-click="edit({text: clause, name:key})">{{clause}}&nbsp;&nbsp;
+	<span class="glyphicon glyphicon-remove" ng-click="remove(key)"></span>
+	</span>
+</span>

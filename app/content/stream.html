@@ -1,0 +1,6 @@
+<div infinite-scroll='loadMore()' infinite-scroll-distance='3'>
+	<div id="entity-{{$index}}" class="entity" ng-repeat='entity in entities'>
+		<img src="img/icon-twitter.png"><strong>@{{entity.handle}}</strong> <span class="handle">{{entity.name}}</span> <span class="timestamp">{{moment(entity.time).format('MMMM Do YYYY, h:mm:ss a')}}</span><br>
+		{{entity.description}}
+	</div>
+</div>

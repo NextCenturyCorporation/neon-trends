@@ -1,0 +1,77 @@
+<!doctype html>
+<html ng-app="neon-trends">
+	<head>
+		<title>Cognate</title>
+		<style>
+			@import url(components/cesiumjs/Cesium/Widgets/widgets.css);
+		</style>
+
+		<!--
+		<link rel="stylesheet" type="text/css" href="components/skeleton-css/css/normalize.css" />
+		-->
+		<link rel="stylesheet" type="text/css" href="components/bootstrap/dist/css/bootstrap.css" />
+		<link rel="stylesheet" type="text/css" href="css/style.css" />
+		<script src="components/jquery/dist/jquery.min.js"></script>
+
+		<script src="components/angular/angular.js"></script>
+		<script src="components/angular-route/angular-route.js"></script>
+
+		<script src="app.js"></script>
+		<script src="dashboard/dashboard.js"></script>
+		<script src='components/ngInfiniteScroll/build/ng-infinite-scroll.min.js'></script>
+
+		<script src="components/moment/moment.js"></script>
+		<script src="components/bootstrap/dist/js/bootstrap.min.js"></script>
+		<script src="components/d3/d3.js" charset="utf-8"></script>
+
+		<script src="/neon/js/neon.js"></script>
+
+
+		<script src="search/search.js"></script>
+		<script src="search/daterange.js"></script>
+		<script src="search/clauses.js"></script>
+
+		<script src="map/openlayers.js"></script>
+		<script src="components/cesiumjs/Cesium/Cesium.js"></script>
+		<script src="components/cesium-drawhelper/DrawHelper.js"></script>
+
+
+		<script src="components/datetimepicker/jquery.datetimepicker.js"></script>
+		<script src="components/openlayers/ol-debug.js"></script>
+
+
+		<script src="content/stream.js"></script>
+
+
+		<script src="timeline/timeline.js"></script>
+		<script src="calendar/calendar.js"></script>
+		<script src="node/node.js"></script>
+		<script src="node/nodeController.js"></script>
+
+		<script src="neon/neon-connection.js"></script>
+		<script src="components/bootstrap-daterangepicker/daterangepicker.js"></script>
+		<script src="components/angular-daterangepicker/js/angular-daterangepicker.js"></script>
+		<script src="filters/filters.js"></script>
+		<link rel="stylesheet" href="components/bootstrap-daterangepicker/daterangepicker-bs3.css"/>
+		<!--
+		<link rel="stylesheet" type="text/css" href="components/skeleton-css/css/skeleton.css" />
+-->
+		<link rel="stylesheet" type="text/css" href="components/fontawesome/css/font-awesome.min.css" />
+		<link rel="stylesheet" type="text/css" href="css/style.css" />
+		<link rel="stylesheet" type="text/css" href="components/cesium-drawhelper/DrawHelper.css" />
+		<link rel="stylesheet" type="text/css" href="components/datetimepicker/jquery.datetimepicker.css" />
+		<link rel="stylesheet" href="components/openlayers/ol.css" />
+	</head>
+	<body>
+		<div ng-view/>
+		<script>
+			//ummm... not sure why Cesium needs to be here twice
+			var CESIUM_BASE_URL = 'components/cesiumjs/Cesium/Cesium';
+		</script>
+
+
+
+
+
+	</body>
+</html>

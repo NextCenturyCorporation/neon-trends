@@ -1,0 +1,13 @@
+{
+	"handle": "actor.preferredUsername",
+	"name": "actor.displayName",
+	"lat": "gnip.profileLocations[0].geo.coordinates[1]",
+	"lon": "gnip.profileLocations[0].geo.coordinates[0]",
+	"description": "body",
+	"kloutScore": "d_klout_score",
+	"volume": "retweetCount",
+	"time": "postedTime",
+	"hashtags": "d_hashtags",
+	"id": "actor.preferredUsername"
+
+}
