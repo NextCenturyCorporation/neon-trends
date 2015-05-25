@@ -1,11 +1,7 @@
 angular.module("neon-trends-node").controller('nodeController', ["$scope", function ($scope) {
 
 	var eventBus = new neon.eventing.EventBus();
-	var nodes =[], links= [], range, entities, nodeTimeMap, linkTimeMap, countTimeMap;
-
-
-	var now = (moment('2015/04/11 04:00').format('YYYY/MM/DD 04:00'));
-	var start = (moment('2015/04/11 00:00').format('YYYY/MM/DD 00:00'));
+	var nodes =[], links= [], range, entities, nodeTimeMap, linkTimeMap, countTimeMap, statuses ={};
 
 	var that = this;
 	var previousIndex =-1;
@@ -14,7 +10,7 @@ angular.module("neon-trends-node").controller('nodeController', ["$scope", funct
 	$scope.data = {
 		nodes:[],
 		links: []
-	}
+	};
 
 	eventBus.subscribe("tick", function (obj) {
 		var index =Math.floor(moment(obj.start).diff(moment(range.startDate)) / moment.duration(that.bucket.unitCount, that.bucket.intervalUnit))
@@ -83,18 +79,28 @@ angular.module("neon-trends-node").controller('nodeController', ["$scope", funct
 				}
 				countTimeMap[index][that.entities[i].id] = nodes[entityMap[that.entities[i].id]].count;
 			}
-
+			
+			statuses[that.entities[i].status_id] = that.entities[i].id;
+			
 
 			nodeTimeMap[index] = nodes.length;
 
 
+			if(statuses[that.entities[i].reply_to_status_id]){
+				var source = entityMap[statuses[that.entities[i].reply_to_status_id]];
+				var target = entityMap[that.entities[i].id];
+				links.push({"source": source, "target": target});
+				linkTimeMap[index] = links.length;
+			}
+			
+			/*
 			//just random links for now
 			if(nodes.length > 1 && randomIntFromInterval(1,10)%10 ===0){
 				var source = randomIntFromInterval(0, nodes.length - 2);
 				links.push({"source": source, "target": nodes.length -1});
 				linkTimeMap[index] = links.length;
 			}
-
+			 	*/
 
 		}
 		while(index < size){

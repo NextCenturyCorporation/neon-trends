@@ -59,7 +59,7 @@ angular.module('neon-trends-node').directive('node', function () {
 				links = force.links();
 
 			function addNode(node) {
-				nodes.push({"id":node.id, "volume":node.count});
+				nodes.push({"id":node.id, "handle":node.handle, "volume":node.count});
 //				update();
 			}
 
@@ -149,7 +149,7 @@ angular.module('neon-trends-node').directive('node', function () {
 				nodeEnter.append("title")
 					.attr("dx", 12)
 					.attr("dy", ".35em")
-					.text(function(d) {return d.id});
+					.text(function(d) {return d.handle});
 
 				if (counts) {
 					node.filter(function (d) {
