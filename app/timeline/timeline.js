@@ -196,6 +196,7 @@ angular.module('neon-trends-timeline').directive('timeline', function ($window) 
 			}
 
 			function moveThroughTime(){
+				scope.isPlay = false;
 				var value = brush.extent()[0];
 
 				if (d3.event.sourceEvent) { // not a programmatic event

@@ -9,8 +9,10 @@ angular.module('neon-trends-node').directive('node', function () {
 
 
 			scope.$watchCollection('data', function(newValues, oldValues){
-
-				if (newValues.nodes.length > oldValues.nodes.length || newValues.links.length > oldValues.links.length) {
+				if (newValues.nodes.length === oldValues.nodes.length && newValues.links.length === oldValues.links.length && newValues.counts){
+					update(newValues.counts);
+				}
+				else if (newValues.nodes.length > oldValues.nodes.length || newValues.links.length > oldValues.links.length) {
 					for (var i = oldValues.nodes.length; i< newValues.nodes.length; i++){
 						addNode(newValues.nodes[i]);
 					}
@@ -59,7 +61,7 @@ angular.module('neon-trends-node').directive('node', function () {
 				links = force.links();
 
 			function addNode(node) {
-				nodes.push({"id":node.id, "handle":node.handle, "volume":node.count});
+				nodes.push({"id":node.id, "handle":node.handle, "volume":0});
 //				update();
 			}
 
@@ -115,7 +117,7 @@ angular.module('neon-trends-node').directive('node', function () {
 					.filter(function (d) {
 						return counts[d.id] > -1;
 					})
-						.call(function(d){pulse(d, counts)});
+						.call(function(d){pulse(d, counts + d.volume)});
 				}
 			}
 
@@ -141,9 +143,10 @@ angular.module('neon-trends-node').directive('node', function () {
 				var nodeEnter = node.enter().append("circle")
 					.attr("class", "node")
 					.attr("r", function (d) {
-						return calculateRadius(1);
+						return calculateRadius(0);
 					})
 					.attr("id", function(d){return d.id})
+					.attr("fill", function(d){if(d.volume === 0){return "green"}else{return "black"}})
 					.call(force.drag);
 
 				nodeEnter.append("title")
@@ -153,8 +156,8 @@ angular.module('neon-trends-node').directive('node', function () {
 
 				if (counts) {
 					node.filter(function (d) {
-						return counts[d.id] > -1;
-					})
+						return counts[d.id] !== undefined;
+					}).attr("fill", function(d){return "black"})
 						.call(function(d){pulse(d, counts)});
 				}
 
@@ -178,7 +181,6 @@ angular.module('neon-trends-node').directive('node', function () {
 			}
 
 			function zoomed() {
-				console.log('zooming')
 				container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 			}
 
@@ -186,19 +188,25 @@ angular.module('neon-trends-node').directive('node', function () {
 				d.transition()
 					.duration(500)
 					.attr("r", function (d) {
-						return calculateRadius(counts[d.id]) * 2;
+						d.volume = counts[d.id] + d.volume;
+						return calculateRadius(d.volume) * 2;
 					})
 					.transition()
 					.duration(500)
 					.attr("r", function (d) {
-						return calculateRadius(counts[d.id]);
+						return calculateRadius(d.volume);
 					})
 					.ease('sine');
 			};
 
 
 			function calculateRadius(v) {
-				return (Math.sqrt(v) + 5);
+				if(v <= 1){
+					return 1 * 10;
+				}else{
+					return (Math.log(v) * 10);
+				}
+
 			}
 
 

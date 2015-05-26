@@ -8,6 +8,7 @@
 	"status_id": "id_str",
 	"reply_to_status_id": "in_reply_to_status_id_str",
 	"reply_to_user_id": "in_reply_to_user_id_str",
+	"reply_to_user_handle" : "in_reply_to_screen_name",
 	"volume": "retweet_count"
-	
+
 }
