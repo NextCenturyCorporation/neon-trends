@@ -207,6 +207,41 @@ clauses > .boxed {
 	stroke: #999;
 	stroke-opacity: .6;
 }
+
+.node-tip {
+	line-height: 1;
+	font-weight: bold;
+	padding: 12px;
+	background: rgba(0, 0, 0, 0.8);
+	color: #fff;
+	border-radius: 2px;
+	z-index: 1000;
+}
+
+.future{
+	background-color: #f1f1f1;
+	font-style: italic;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.node-tip:after {
+	box-sizing: border-box;
+	display: inline;
+	font-size: 10px;
+	width: 100%;
+	line-height: 1;
+	color: rgba(0, 0, 0, 0.8);
+	content: "\25BC";
+	position: absolute;
+	text-align: center;
+}
+
+/* Style northward tooltips differently */
+.node-tip.n:after {
+	margin: -1px 0 0 0;
+	top: 100%;
+	left: 0;
+}
 /*
 
 .north{

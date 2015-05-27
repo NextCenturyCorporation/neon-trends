@@ -1,4 +1,4 @@
-angular.module('neon-trends-stream', ['infinite-scroll']).directive('stream', function ($location, $anchorScroll) {
+angular.module('neon-trends-content', ['infinite-scroll']).directive('content', function ($location, $anchorScroll) {
 	return{
 		restrict: 'E',
 		templateUrl: "content/stream.html",
@@ -11,50 +11,38 @@ angular.module('neon-trends-stream', ['infinite-scroll']).directive('stream', fu
 			scope.last = 0;
 			var buffer = 25;
 			var bucket = {};
-			var allEntities =[];
+			var entitiesMap ={};
 			var timeMap = {};
 			var range = scope.initRange;
+			var selectedNode;
+			scope.now = moment("2000-1-1");
 
 			//$(element.parent()).height($(element.parent().siblings()[1]).height())
 
 
 			eventBus.subscribe("onDataReturned", function(entities){
-				allEntities = entities;
-				scope.entities = allEntities.slice(0,buffer);
-				scope.last = buffer;
-				scope.$apply();
+				entitiesMap = createMap(entities);
+				//scope.entities = allEntities.slice(0,buffer);
+				//scope.last = buffer;
+				//scope.$apply();
 
-			}, "stream");
+			}, "content");
+
+			eventBus.subscribe("createdTemporalFilter", function (obj) {
+				range = obj;
+			}, "content");
 
 			eventBus.subscribe("clearEntities", function () {
 				scope.entities.length =0;
 
-			}, "stream");
+			}, "content");
 
-			eventBus.subscribe("tick", function (obj) {
-				var j =Math.floor(moment(obj.start).diff(moment(range.startDate)) / moment.duration(bucket.unitCount, bucket.intervalUnit))
-				var index = timeMap[j];
-				// the next line is required to work around a bug in WebKit (Chrome / Safari)
-				while(index > scope.last){
-					scope.loadMore();
-					scope.$apply();
-				}
-				//only animate every 10 steps, otherwise too choppy
-				if(j % 10===0){
-					if ($('#entity-' + index).length) {
-
-
-					$('html, body').animate({
-						scrollTop: $('#entity-' + index).offset().top - 95
-					}, 1000);
-					}
-				}
-
-
-
-			}, "stream");
+			eventBus.subscribe("tick", function (range) {
+				scope.now = range.start;
+			}, "content");
 
 			eventBus.subscribe("timeBucket", function (obj) {
+				/*
 				bucket = obj;
 				var size = Math.floor(moment(range.endDate).diff(moment(range.startDate)) / moment.duration(bucket.unitCount, bucket.intervalUnit));
 				timeMap = new Array(size);
@@ -77,17 +65,38 @@ angular.module('neon-trends-stream', ['infinite-scroll']).directive('stream', fu
 					timeMap[j]=lastI;
 					j++;
 				}
-			}, "stream");
+				*/
+			}, "content");
 
-			eventBus.subscribe("createdTemporalFilter", function (obj) {
-				range = obj;
-			}, "stream");
+			eventBus.subscribe("NodeSelected", function (node) {
+				scope.entities = entitiesMap[node.id];
+				selectedNode = node.id;
+				scope.$apply();
+
+			}, "content");
 
 			scope.loadMore = function() {
-				scope.entities = scope.entities.concat(allEntities.slice(scope.last,scope.last+buffer));
-				scope.last +=buffer;
+				if(selectedNode){
+					scope.entities = scope.entities.concat(entitiesMap[selectedNode].slice(scope.last,scope.last+buffer));
+					scope.last +=buffer;
+				}
 			};
 			scope.moment = moment;
+
+
+			function createMap(entities){
+				var map = {};
+				angular.forEach(entities, function(entity){
+					if(!map[entity.id]){
+						map[entity.id] = [];
+					}
+					map[entity.id].push(entity);
+				});
+
+				return map;
+			}
+
+
 		}
 	}
 });

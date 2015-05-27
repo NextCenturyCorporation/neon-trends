@@ -134,8 +134,8 @@ angular.module('neon-trends-search').directive('search', function (Connection, $
 
 					}
 
-					temporalClauses.push(neon.query.where("postedTime", ">=", new Date(scope.search.range.startDate)));
-					temporalClauses.push(neon.query.where("postedTime", "<=", new Date(scope.search.range.endDate)));
+					temporalClauses.push(neon.query.where(model.time, ">=", new Date(scope.search.range.startDate)));
+					temporalClauses.push(neon.query.where(model.time, "<=", new Date(scope.search.range.endDate)));
 
 
 
@@ -150,10 +150,7 @@ angular.module('neon-trends-search').directive('search', function (Connection, $
 					}
 
 
-					var queryAds = new neon.query.Query().selectFrom($rootScope.connection.database, $rootScope.connection.collection).where(and(clauses)).limit(1000).sortBy('postedTime', neon.query.ASCENDING);
-
-					//only tweets by chicago
-					//queryAds = new neon.query.Query().selectFrom("xdata", scope.collection).withinDistance("gnip.profileLocations.0.geo.coordinates", new neon.util.LatLon(41.8369, -87.6847), 100, neon.query.MILE);
+					var queryAds = new neon.query.Query().selectFrom($rootScope.connection.database, $rootScope.connection.collection).where(and(clauses)).limit(10000).sortBy(model.time, neon.query.ASCENDING);
 
 					scope.search.q = {name: "", text: ""};
 					Connection.executeQuery(queryAds, function (result) {
@@ -162,8 +159,9 @@ angular.module('neon-trends-search').directive('search', function (Connection, $
 						angular.forEach(result.data, function (tweet) {
 							var entity= {};
 							angular.forEach(model, function(value, key) {
-								entity[key] = getValueFromObject(tweet, value)
+								entity[key] = getValueFromObject(tweet, value);
 							});
+							
 							entity.time = moment(entity.time).toDate(),
 
 							entities.push(entity);

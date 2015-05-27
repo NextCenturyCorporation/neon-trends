@@ -1,4 +1,4 @@
-angular.module('neon-trends', ['neon-trends-search', 'ngRoute', 'neon', 'neon-trends-timeline', 'openlayers', 'neon-trends-stream', 'neon-trends-filter', 'neon-trends-node']).config(['$routeProvider', function ($routeProvider) {
+angular.module('neon-trends', ['neon-trends-search', 'ngRoute', 'neon', 'neon-trends-timeline', 'openlayers', 'neon-trends-content', 'neon-trends-filter', 'neon-trends-node']).config(['$routeProvider', function ($routeProvider) {
 
 	$routeProvider.when('/dashboard', {
 		templateUrl: 'dashboard/dashboard.html',

@@ -196,6 +196,7 @@ angular.module('neon-trends-timeline').directive('timeline', function ($window) 
 			}
 
 			function moveThroughTime(){
+				scope.isPlay = false;
 				var value = brush.extent()[0];
 
 				if (d3.event.sourceEvent) { // not a programmatic event
@@ -226,7 +227,9 @@ angular.module('neon-trends-timeline').directive('timeline', function ($window) 
 						start: ticks[index],
 						end: ticks[index+1]
 					};
-					scope.$apply();
+					if(!scope.$$phase && !scope.$root.$$phase) {
+						scope.$apply();
+					}
 					eventBus.publish("tick", scope.tickRange, "timeline");
 
 				moveToTick(ticks[index+1]);

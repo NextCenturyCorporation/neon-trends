@@ -11,13 +11,13 @@
 		<div class="col-xs-2 fixedContainer">
 			<filter range="range"></filter>
 		</div>
-		<div class="col-xs-7 col-xs-push-2 fixedContainer" ng-controller="nodeController">
+		<div class="col-xs-7 col-xs-push-2 fixedContainer" ng-controller="NodeController">
 			nodes:{{data.nodes.length}} links:{{data.links.length}}
 			<node data="data"></node>
 			<timeline range="range"></timeline>
 		</div>
 		<div class="col-xs-push-9 col-xs-3 scrollable">
-			<stream range="range"></stream>
+			<content range="range"></content>
 		</div>
 	</div>
 
