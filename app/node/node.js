@@ -9,8 +9,8 @@ angular.module('neon-trends-node').directive('node', function () {
 
 
 			scope.$watchCollection('data', function(newValues, oldValues){
-				if (newValues.nodes.length === oldValues.nodes.length && newValues.links.length === oldValues.links.length && newValues.counts){
-					update(newValues.counts);
+				if (newValues.nodes.length === oldValues.nodes.length && newValues.links.length === oldValues.links.length && (newValues.counts || newValues.linkCounts)){
+					update(newValues.counts, newValues.linkCounts);
 				}
 				else if (newValues.nodes.length > oldValues.nodes.length || newValues.links.length > oldValues.links.length) {
 					for (var i = oldValues.nodes.length; i< newValues.nodes.length; i++){
@@ -19,11 +19,11 @@ angular.module('neon-trends-node').directive('node', function () {
 					for (var i = oldValues.links.length; i< newValues.links.length; i++){
 						addLink(newValues.links[i].source , newValues.links[i].target );
 					}
-					update(newValues.counts);
+					update(newValues.counts, newValues.linkCounts);
 				}else if (newValues.nodes.length < oldValues.nodes.length || newValues.links.length < oldValues.links.length){
 					removeNodes(newValues.nodes.length);
 					removeLinks(newValues.links.length);
-					update(newValues.counts);
+					update(newValues.counts, newValues.linkCounts);
 				}
 
 			})
@@ -35,6 +35,14 @@ angular.module('neon-trends-node').directive('node', function () {
 			var width = 500,
 				height = 500;
 
+			var tip = d3.tip()
+				.attr('class', 'node-tip')
+				.offset([-10, 0])
+				.html(function(d) {
+					return "<table class='table table-bordered'><caption>@" + d.handle + "</caption><thead><tr><th>Tweets</th><th>Retweets</th></tr></thead><tbody><tr><td>" + d.volume + "</td><td>" + d.retweets + "</td></tr></tbody></table>";
+
+				});
+
 			var svg = d3.select("node").append("svg")
 				.attr("width", width)
 				.attr("height", height)
@@ -42,7 +50,7 @@ angular.module('neon-trends-node').directive('node', function () {
 				.style("pointer-events", "all")
 				.call(zoom);
 
-
+			svg.call(tip);
 
 			var rect = svg.append("rect")
 				.attr("width", width)
@@ -60,8 +68,11 @@ angular.module('neon-trends-node').directive('node', function () {
 			var nodes = force.nodes(),
 				links = force.links();
 
+
+
+
 			function addNode(node) {
-				nodes.push({"id":node.id, "handle":node.handle, "volume":0});
+				nodes.push({"id":node.id, "handle":node.handle, "volume":0, "retweets":0});
 //				update();
 			}
 
@@ -110,18 +121,8 @@ angular.module('neon-trends-node').directive('node', function () {
 			}
 
 
-			function updateVolumes(counts){
-				if (counts) {
-					dots.selectAll(".node")
-						.data(nodes, function(d) { return d.id;})
-					.filter(function (d) {
-						return counts[d.id] > -1;
-					})
-						.call(function(d){pulse(d, counts + d.volume)});
-				}
-			}
 
-			var update = function (counts) {
+			var update = function (counts, linkCounts) {
 				//force.nodes(nodes);
 
 
@@ -147,6 +148,8 @@ angular.module('neon-trends-node').directive('node', function () {
 					})
 					.attr("id", function(d){return d.id})
 					.attr("fill", function(d){if(d.volume === 0){return "green"}else{return "black"}})
+					.on('mouseover', tip.show)
+					.on('mouseout', tip.hide)
 					.call(force.drag);
 
 				nodeEnter.append("title")
@@ -159,6 +162,16 @@ angular.module('neon-trends-node').directive('node', function () {
 						return counts[d.id] !== undefined;
 					}).attr("fill", function(d){return "black"})
 						.call(function(d){pulse(d, counts)});
+				}
+
+				if(linkCounts){
+					node.filter(function (d) {
+						return linkCounts[d.id] !== undefined;
+					}).each(function(d){
+							angular.forEach(linkCounts[d.id], function(value){
+								d.retweets += value;
+						});
+					});
 				}
 
 

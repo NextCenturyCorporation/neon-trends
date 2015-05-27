@@ -1,7 +1,7 @@
 angular.module("neon-trends-node").controller('NodeController', ["$scope", function ($scope) {
 
 	var eventBus = new neon.eventing.EventBus();
-	var nodes =[], links= [], range, entities, nodeTimeMap, linkTimeMap, countTimeMap, statuses ={}, linkCountTimeMap;
+	var nodes =[], links= [], entities, nodeTimeMap, linkTimeMap, countTimeMap, statuses ={}, linkCountTimeMap;
 
 	var that = this;
 	var previousIndex =-1;
@@ -109,9 +109,12 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 			if(that.entities[i].status_id){
 				statuses[that.entities[i].status_id] = that.entities[i].id;
     			if(statuses[that.entities[i].reply_to_status_id] || that.entities[i].reply_to_status_id){
-				    var source, target, key;
+				    var sourceId, source, targetId, target, key;
+
+
 				    if(statuses[that.entities[i].reply_to_status_id]){
-					    source = entityMap[statuses[that.entities[i].reply_to_status_id]];
+					    sourceId = statuses[that.entities[i].reply_to_status_id];
+					    source = entityMap[sourceId];
 					    target = entityMap[that.entities[i].id];
 				    }else{
 					    //If there is a reply but there isn't an existing node, create node for that user.
@@ -119,10 +122,13 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 					    nodes.push(node);
 					    statuses[that.entities[i].reply_to_status_id] = node.id;
 					    entityMap[node.id] = nodes.length-1;
-					    source = entityMap[statuses[that.entities[i].reply_to_status_id]];
+					    sourceId = statuses[that.entities[i].reply_to_status_id];
+					    source = entityMap[sourceId];
 					    target = entityMap[that.entities[i].id];
 				    }
-				    var key = createLinkKey(source, target);
+
+				    targetId = that.entities[i].id;
+
 					if(!linkCountTimeMap[index]){
 						linkCountTimeMap[index] = {};
 					}
@@ -130,10 +136,14 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 					    links.push({"source": source, "target": target});
 					    linkTimeMap[index] = links.length;
 				    }
-				    if(!linkCountTimeMap[index][key]){
-					    linkCountTimeMap[index][key] = 0;
+				    if(!linkCountTimeMap[index][sourceId]){
+					    linkCountTimeMap[index][sourceId] = {};
 				    }
-				    linkCountTimeMap[index][key]++;
+				    if(!linkCountTimeMap[index][sourceId][targetId]){
+					    linkCountTimeMap[index][sourceId][targetId] = 0;
+				    }
+
+				    linkCountTimeMap[index][sourceId][targetId]++;
 				}
 			}
 
@@ -141,12 +151,9 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 		}
 		while(index < size){
 			nodeTimeMap[index] = nodes.length;
+			linkTimeMap[index] = links.length;
 			index++;
 		}
-	}
-
-	function createLinkKey(source, target){
-		return source + "+" + target;
 	}
 
 	function createNode(entity){
