@@ -101,6 +101,7 @@ angular.module('neon-trends-node').directive('node', function () {
 				var x = center.y +(radius*Math.cos(theta));
 				nodes.push({"id":node.id, "handle":node.handle, "volume":0,"retweets":0, "x": x, "y":y});
 
+
 //				update();
 			}
 
@@ -147,7 +148,6 @@ angular.module('neon-trends-node').directive('node', function () {
 						return i
 				};
 			}
-
 
 
 			var update = function (counts, linkCounts) {
@@ -257,6 +257,7 @@ angular.module('neon-trends-node').directive('node', function () {
 				}else{
 					return (Math.log(v) * 10);
 				}
+
 
 			}
 
