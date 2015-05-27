@@ -4,8 +4,6 @@ angular.module('neon-trends', ['neon-trends-search', 'ngRoute', 'neon', 'neon-tr
 		templateUrl: 'dashboard/dashboard.html',
 		controller: 'DashboardController',
 		reloadOnSearch: false
-	})$routeProvider.when('/test', {
-		templateUrl: 'test.html'
 	}).otherwise({redirectTo: '/dashboard'});
 }]).run(function ($rootScope) {
 	$.getJSON("config.json", function (data) {
