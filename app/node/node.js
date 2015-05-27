@@ -70,6 +70,11 @@ angular.module('neon-trends-node').directive('node', function () {
 
 
 
+			function nodeSelected(d){
+				console.log(d);
+				eventBus.publish("NodeSelected", d, "node-graph");
+			}
+
 
 			function addNode(node) {
 				nodes.push({"id":node.id, "handle":node.handle, "volume":0, "retweets":0});
@@ -150,6 +155,7 @@ angular.module('neon-trends-node').directive('node', function () {
 					.attr("fill", function(d){if(d.volume === 0){return "green"}else{return "black"}})
 					.on('mouseover', tip.show)
 					.on('mouseout', tip.hide)
+					.on('click', nodeSelected)
 					.call(force.drag);
 
 				nodeEnter.append("title")

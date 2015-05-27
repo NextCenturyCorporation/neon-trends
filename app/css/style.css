@@ -218,6 +218,11 @@ clauses > .boxed {
 	z-index: 1000;
 }
 
+.future{
+	background-color: #f1f1f1;
+	font-style: italic;
+}
+
 /* Creates a small triangle extender for the tooltip */
 .node-tip:after {
 	box-sizing: border-box;
