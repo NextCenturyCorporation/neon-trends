@@ -11,9 +11,27 @@
 		<div class="col-xs-2 fixedContainer">
 			<filter range="range"></filter>
 		</div>
-		<div class="col-xs-7 col-xs-push-2 fixedContainer" ng-controller="NodeController">
-			nodes:{{data.nodes.length}} links:{{data.links.length}}
-			<node data="data"></node>
+
+
+
+		<div class="col-xs-7 col-xs-push-2 fixedContainer" >
+			<ul class="nav nav-tabs" ng-init="active='Map'">
+				<li role="presentation" ng-class="{active: active ==='Map'}"><a ng-click="active='Map'">Map</a></li>
+				<li role="presentation" ng-class="{active: active==='Node'}"><a ng-click="active='Node'">Graph</a></li>
+			</ul>
+			<div ng-show="active==='Map'" ng-controller="NodeController">
+				<div id="map" class="map" openlayers map="map" source="source">
+
+				</div>
+			</div>
+			<div ng-show="active==='Node'" ng-controller="NodeController">
+				nodes:{{data.nodes.length}} links:{{data.links.length}}
+				<node data="data"></node>
+			</div>
+
+
+
+
 			<timeline range="range"></timeline>
 		</div>
 		<div class="col-xs-push-9 col-xs-3 scrollable">

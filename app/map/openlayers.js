@@ -61,12 +61,20 @@ angular.module('openlayers', []).directive('openlayers', function (Connection) {
 			eventBus.subscribe("addEntity", function (entity) {
 				$scope.markers.push(entity);
 			}, "map");
-			eventBus.subscribe("addEntity", function (entity) {
-				$scope.markers.push(entity);
+
+			eventBus.subscribe("onDataReturned", function (entities) {
+				this.entities = entities;
+
+
+
 			}, "map");
 
+			eventBus.subscribe("timeBucket", function (obj) {
+				bucket = obj;
+				bucketData();
+			}, "map");
 
-			eventBus.subscribe("addEntities", function (entities) {
+			function bucketData(){
 				var features = [];
 				var size = Math.floor(moment(range.endDate).diff(moment(range.startDate)) / moment.duration(bucket.unitCount, bucket.intervalUnit));
 				timeMap = new Array(size);
@@ -104,13 +112,7 @@ angular.module('openlayers', []).directive('openlayers', function (Connection) {
 					}
 					timeMap[i] = timeMap[i].concat(timeMap[i-1]);
 				}
-
-
-			}, "map");
-
-			eventBus.subscribe("timeBucket", function (obj) {
-				bucket = obj;
-			}, "map");
+			}
 
 			eventBus.subscribe("tick", function (obj) {
 				var index = Math.floor(moment(obj.start).diff(moment(range.startDate)) / moment.duration(bucket.unitCount, bucket.intervalUnit));
@@ -118,7 +120,12 @@ angular.module('openlayers', []).directive('openlayers', function (Connection) {
 					scope.map.removeLayer(layers[i]);
 				}
 				layers.length =0;
-				createClusters(timeMap[index]);
+				if(index >= timeMap.length){
+					createClusters(timeMap[timeMap.length-1]);
+				}else{
+					createClusters(timeMap[index]);
+				}
+
 
 			}, "map");
 
