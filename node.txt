@@ -61,7 +61,7 @@ angular.module('neon-trends-node').directive('node', function () {
 			var dots = container.append("g");
 			var center = {x: height/2, y:width/2}
 			var foci = [{x: 200, y: 250}, {x: 500, y: 250}];
-			var radius = 500;
+			var radius = 200;
 
 			var force = d3.layout.force()
 //				.gravity(function(d) {
@@ -72,10 +72,14 @@ angular.module('neon-trends-node').directive('node', function () {
 //						return .2
 //					}
 //				})
-				.gravity(.2)
-				.linkDistance(30)
+				.distance(100)
 				.charge(function (d){
-					return -500/(d.weight+1);
+					if(d.weight===0){
+						return(-500);
+					}
+					else{
+						return(-10);
+					}
 				})
 //				.charge(-10)
 				.size([width, height]);
@@ -96,7 +100,6 @@ angular.module('neon-trends-node').directive('node', function () {
 				var y = center.x +(radius*Math.sin(theta));
 				var x = center.y +(radius*Math.cos(theta));
 				nodes.push({"id":node.id, "handle":node.handle, "volume":0,"retweets":0, "x": x, "y":y});
-
 
 //				update();
 			}
@@ -146,33 +149,11 @@ angular.module('neon-trends-node').directive('node', function () {
 			}
 
 
+
 			var update = function (counts, linkCounts) {
 				var node = dots.selectAll(".node")
 					.data(nodes, function(d) { return d.id;});
 
-				var nodeEnter = node.enter().append("circle")
-					.attr("class", "node")
-					.attr("r", function (d) {
-						return calculateRadius(0);
-					})
-					.attr("id", function(d){return d.id})
-					.attr("fill", function(d){if(d.volume === 0){return "green"}else{return "black"}})
-					.on('mouseover', tip.show)
-					.on('mouseout', tip.hide)
-					.on('click', nodeSelected)
-					.call(force.drag);
-//				nodes.forEach(function(d, i) {
-//						console.log(d);
-////					var theta = randomTheta();
-////					d.y = center.x +(radius*Math.sin(theta));
-////					d.x = center.y +(radius*Math.cos(theta));
-////					node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
-//				});
-
-				nodeEnter.append("title")
-					.attr("dx", 12)
-					.attr("dy", ".35em")
-					.text(function(d) {return d.handle});
 
 				var link = dots.selectAll("line.link")
 					.data(links,
@@ -187,6 +168,29 @@ angular.module('neon-trends-node').directive('node', function () {
 
 				var theta = randomTheta();
 
+				var nodeEnter = node.enter().append("circle")
+					.attr("class", "node")
+					.attr("r", function (d) {
+						return calculateRadius(0);
+					})
+					.attr("id", function(d){return d.id})
+					.attr("fill", function(d){if(d.volume === 0){return "green"}else{return "black"}})
+					.on('mouseover', tip.show)
+					.on('mouseout', tip.hide)
+					.on('click', nodeSelected)
+					.call(force.drag);
+				nodes.forEach(function(d, i) {
+						console.log(d);
+//					var theta = randomTheta();
+//					d.y = center.x +(radius*Math.sin(theta));
+//					d.x = center.y +(radius*Math.cos(theta));
+//					node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+				});
+
+				nodeEnter.append("title")
+					.attr("dx", 12)
+					.attr("dy", ".35em")
+					.text(function(d) {return d.handle});
 
 				if (counts) {
 					node.filter(function (d) {
@@ -214,9 +218,9 @@ angular.module('neon-trends-node').directive('node', function () {
 						.attr("x2", function(d) { return d.target.x; })
 						.attr("y2", function(d) { return d.target.y; });
 
-					node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+					var k = .005;
 
-					node.each(collide(0.5));
+					node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 				});
 
 				force.start();
@@ -254,37 +258,6 @@ angular.module('neon-trends-node').directive('node', function () {
 					return (Math.log(v) * 10);
 				}
 
-
-			}
-
-			var padding = 1, // separation between circles
-				rad=8;
-
-			function collide(alpha) {
-
-				var quadtree = d3.geom.quadtree(force.nodes());
-				return function(d) {
-					var rb = 2*rad + padding,
-						nx1 = d.x - rb,
-						nx2 = d.x + rb,
-						ny1 = d.y - rb,
-						ny2 = d.y + rb;
-					quadtree.visit(function(quad, x1, y1, x2, y2) {
-						if (quad.point && (quad.point !== d)) {
-							var x = d.x - quad.point.x,
-								y = d.y - quad.point.y,
-								l = Math.sqrt(x * x + y * y);
-							if (l < rb) {
-								l = (l - rb) / l * alpha;
-								d.x -= x *= l;
-								d.y -= y *= l;
-								quad.point.x += x;
-								quad.point.y += y;
-							}
-						}
-						return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
-					});
-				};
 			}
 
 		}

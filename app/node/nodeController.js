@@ -27,8 +27,8 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 		links= [];
 		statuses ={};
 		createNodeData(bucket);
-		//parseTimeFrame(range.endDate);
-		//$scope.$apply();
+//		parseTimeFrame(range.endDate);
+//		$scope.$apply();
 	}, "node");
 
 	eventBus.subscribe("createdTemporalFilter", function (range) {
