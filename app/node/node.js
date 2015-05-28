@@ -70,8 +70,8 @@ angular.module('neon-trends-node').directive('node', function () {
 				.style("fill", "none");
 
 			var container = svg.append("g");
-			var dots = container.append("g").attr("id", "nodes");
 			var arrows = container.append("g").attr("id", "links");
+			var dots = container.append("g").attr("id", "nodes");
 
 			var center = {x: width/2, y:height/2}
 			var radius = 500;
@@ -101,7 +101,6 @@ angular.module('neon-trends-node').directive('node', function () {
 				links = force.links();
 
 			function nodeSelected(d){
-				console.log(d);
 				eventBus.publish("NodeSelected", d, "node-graph");
 			}
 
@@ -184,7 +183,7 @@ angular.module('neon-trends-node').directive('node', function () {
 						return calculateRadius(0);
 					})
 					.attr("id", function(d){return d.id})
-					.attr("fill", function(d){if(d.volume != 0){return "black"}else{return "grey"}})
+					.attr("fill", function(d){if(d.counts[d.counts.length-1] > 0){return "black"}else{return "grey"}})
 					.on('mouseover', tip.show)
 					.on('mouseout', tip.hide)
 					.on('click', nodeSelected)
@@ -200,7 +199,6 @@ angular.module('neon-trends-node').directive('node', function () {
 
 
 					node.filter(function(d){return d.counts[index] !== d.volume})
-						.attr("fill", function(d){return "black"})
 						.call(function(d){pulse(d, index)});
 
 
@@ -228,9 +226,9 @@ angular.module('neon-trends-node').directive('node', function () {
 							(d.source.x + d.target.x)/2 + "," + (d.source.y + d.target.y)/2 + " " +
 							d.target.x + "," + d.target.y; });
 
-					node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+					//node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 
-					node.each(collide(0.5));
+					node.each(collide(0.5)).attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 				});
 
 				force.start();
@@ -277,7 +275,7 @@ angular.module('neon-trends-node').directive('node', function () {
 
 				var quadtree = d3.geom.quadtree(force.nodes());
 				return function(d) {
-					var rb = 2*rad + padding,
+					var rb = 2* calculateRadius(d.volume) + padding,
 						nx1 = d.x - rb,
 						nx2 = d.x + rb,
 						ny1 = d.y - rb,
