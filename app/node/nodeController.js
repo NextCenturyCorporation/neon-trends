@@ -80,12 +80,6 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 //			if(!countTimeMap[index]){
 //				countTimeMap[index] = {};
 //			}
-
-
-			if(node.handle === 'Abo_Danh4774'){
-				console.log('STOP');
-			}
-
 			node.count ++;
 			node.countArray[index] = node.count;
 
