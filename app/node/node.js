@@ -31,7 +31,6 @@ angular.module('neon-trends-node').directive('node', function () {
 			var zoom = d3.behavior.zoom()
 				.on("zoom", zoomed);
 
-
 			var width = 700,
 				height = 500;
 
@@ -52,15 +51,29 @@ angular.module('neon-trends-node').directive('node', function () {
 
 			svg.call(tip);
 
+			svg.append("svg:defs").selectAll("marker")
+				.data(["end"])      // Different link/path types can be defined here
+				.enter().append("svg:marker")    // This section adds in the arrows
+				.attr("id", String)
+					.attr("viewBox", "0 -5 10 10")
+					.attr("refX", 25)
+					.attr("refY", 0)
+					.attr("markerWidth", 6)
+					.attr("markerHeight", 6)
+					.attr("orient", "auto")
+				.append("svg:path")
+					.attr("d", "M0,-5L10,0L0,5");
+
 			var rect = svg.append("rect")
 				.attr("width", width)
 				.attr("height", height)
 				.style("fill", "none");
 
 			var container = svg.append("g");
-			var dots = container.append("g");
+			var dots = container.append("g").attr("id", "nodes");
+			var arrows = container.append("g").attr("id", "links");
+
 			var center = {x: height/2, y:width/2}
-			var foci = [{x: 200, y: 250}, {x: 500, y: 250}];
 			var radius = 500;
 
 			var force = d3.layout.force()
@@ -73,7 +86,7 @@ angular.module('neon-trends-node').directive('node', function () {
 //					}
 //				})
 				.gravity(.2)
-				.linkDistance(30)
+				.linkDistance(50)
 				.charge(function (d){
 					return -500/(d.weight+1);
 				})
@@ -83,22 +96,16 @@ angular.module('neon-trends-node').directive('node', function () {
 			var nodes = force.nodes(),
 				links = force.links();
 
-
-
 			function nodeSelected(d){
 				console.log(d);
 				eventBus.publish("NodeSelected", d, "node-graph");
 			}
-
 
 			function addNode(node) {
 				var theta = randomTheta();
 				var y = center.x +(radius*Math.sin(theta));
 				var x = center.y +(radius*Math.cos(theta));
 				nodes.push({"id":node.id, "handle":node.handle, "volume":0,"retweets":0, "x": x, "y":y});
-
-
-//				update();
 			}
 
 			function removeNodes(index) {
@@ -123,9 +130,6 @@ angular.module('neon-trends-node').directive('node', function () {
 			}
 
 			function addLink(sourceId, targetId) {
-//				var sourceNode = findNode(sourceId);
-//				var targetNode = findNode(targetId);
-
 //				if((sourceNode !== undefined) && (targetNode !== undefined)) {
 					links.push({"source": nodes[sourceId], "target": nodes[targetId] });
 //				}
@@ -147,7 +151,19 @@ angular.module('neon-trends-node').directive('node', function () {
 
 
 			var update = function (counts, linkCounts) {
-				var node = dots.selectAll(".node")
+				var link = svg.select("#links").selectAll(".link")
+					.data(links,
+					function(d) {
+						return d.source.id + "-" + d.target.id; });
+
+				link.enter().insert("line")
+					.attr("stroke-width", 1)
+					.attr("class", "link")
+					.attr("marker-end", "url(#end)");
+
+				link.exit().remove();
+
+				var node = svg.select("#nodes").selectAll(".node")
 					.data(nodes, function(d) { return d.id;});
 
 				var nodeEnter = node.enter().append("circle")
@@ -156,34 +172,16 @@ angular.module('neon-trends-node').directive('node', function () {
 						return calculateRadius(0);
 					})
 					.attr("id", function(d){return d.id})
-					.attr("fill", function(d){if(d.volume === 0){return "green"}else{return "black"}})
+					.attr("fill", function(d){if(d.volume != 0){return "black"}else{return "grey"}})
 					.on('mouseover', tip.show)
 					.on('mouseout', tip.hide)
 					.on('click', nodeSelected)
 					.call(force.drag);
-//				nodes.forEach(function(d, i) {
-//						console.log(d);
-////					var theta = randomTheta();
-////					d.y = center.x +(radius*Math.sin(theta));
-////					d.x = center.y +(radius*Math.cos(theta));
-////					node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
-//				});
 
 				nodeEnter.append("title")
 					.attr("dx", 12)
 					.attr("dy", ".35em")
 					.text(function(d) {return d.handle});
-
-				var link = dots.selectAll("line.link")
-					.data(links,
-					function(d) {
-						return d.source.id + "-" + d.target.id; });
-
-				link.enter().insert("line")
-					.attr("stroke-width", 1)
-					.attr("class", "link");
-
-				link.exit().remove();
 
 				var theta = randomTheta();
 
@@ -249,9 +247,10 @@ angular.module('neon-trends-node').directive('node', function () {
 
 			function calculateRadius(v) {
 				if(v <= 1){
-					return 1 * 10;
+					return 5;
 				}else{
-					return (Math.log(v) * 10);
+//					return (Math.log(v) * 10);
+					return 5 + v;
 				}
 
 
