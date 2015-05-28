@@ -107,8 +107,8 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 				    }else{
 					    //If there is a reply but there isn't an existing node, create node for that user.
 					    var node;
-					    if(entityMap[that.entities[i].id]){
-						    node = nodes[entityMap[that.entities[i].id]];
+					    if(entityMap[that.entities[i].reply_to_user_id]){
+						    node = nodes[entityMap[that.entities[i].reply_to_user_id]];
 					    }else{
 						    node = createNode({handle: that.entities[i].reply_to_user_handle, id: that.entities[i].reply_to_user_id}, size);
 						    nodes.push(node);
