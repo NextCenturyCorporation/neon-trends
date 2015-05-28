@@ -191,8 +191,8 @@ angular.module('neon-trends-node').directive('node', function () {
 
 
 
-					node.attr("fill", function(d){return "black"})
-						.filter(function(d){return d.counts[index] !== d.volume})
+					node.filter(function(d){return d.counts[index] !== d.volume})
+						.attr("fill", function(d){return "black"})
 						.call(function(d){pulse(d, index)});
 
 
