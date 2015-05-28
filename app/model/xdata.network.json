@@ -3,7 +3,7 @@
 	"name": "user.name",
 	"description": "text",
 	"time": "created_at",
-	"hashtags": "entities.hashtags",
+	"hashtags": "entities.hashtags.text",
 	"id": "user.id_str",
 	"status_id": "id_str",
 	"reply_to_status_id": "in_reply_to_status_id_str",
