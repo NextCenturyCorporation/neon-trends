@@ -86,7 +86,13 @@ angular.module('neon-trends-content', ['infinite-scroll']).directive('content', 
 
 			function createMap(entities){
 				var map = {};
-				angular.forEach(entities, function(entity){
+				angular.forEach(entities, function(entity, i){
+					if(i === 78 || i===88 || i==92 || i==160){
+						console.log("STOP");
+					}
+					if(entity.id === "731583228"){
+						console.log("STOP");
+					}
 					if(!map[entity.id]){
 						map[entity.id] = [];
 					}

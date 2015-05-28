@@ -40,31 +40,8 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 		var nodeIndex = nodeTimeMap[index];
 		var linkIndex = linkTimeMap[index];
 
-		//if going forward in time
-		if(index > previousIndex){
-			$scope.data = {nodes :nodes.slice(0,nodeIndex), links:links.slice(0,linkIndex), counts:countTimeMap[index], linkCounts: linkCountTimeMap[index]};
-		}else{
-			var count = {};
-			var linkCounts = {};
-			angular.forEach(countTimeMap[previousIndex], function(value, key){
-				for(var i = index; i>=0; i--){
-					if(countTimeMap[i] ? countTimeMap[i][key] : false){
-						count[key] = -value;
-						break;
-					}
-				}
-			})
-			angular.forEach(linkCountTimeMap[previousIndex], function(value, key){
-				for(var i = index; i>=0; i--){
-					if(linkCountTimeMap[i] ? linkCountTimeMap[i][key] : false){
-						linkCounts[key] = -value;
-						break;
-					}
-				}
-			})
-			$scope.data = {nodes :nodes.slice(0,nodeIndex), links:links.slice(0,linkIndex), counts:count, linkCounts: linkCounts};
-		}
-		previousIndex = index;
+		$scope.data = {nodes :nodes.slice(0,nodeIndex), links:links.slice(0,linkIndex), index:index, linkCounts: linkCountTimeMap[index]};
+
 	}
 
 	function createNodeData(bucket){
@@ -89,21 +66,32 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 			}
 
 			//if entity hasn't previous been seen, create and add
-			if(!entityMap[that.entities[i].id]){
-				nodes.push(createNode(that.entities[i]));
+			if(!(entityMap[that.entities[i].id] > -1) ){
+				node = createNode(that.entities[i], size)
+				nodes.push(node);
 				entityMap[that.entities[i].id] = nodes.length-1;
+			}else{
+				node = nodes[entityMap[that.entities[i].id]];
 			}
-			//if the timemap doesn't have a value for the current time
-			if(!countTimeMap[index]){
-				countTimeMap[index] = {};
-			}
-			nodes[entityMap[that.entities[i].id]].count++;
-			if(!countTimeMap[index][that.entities[i].id]){
-				countTimeMap[index][that.entities[i].id] = 0;
-			}
-			countTimeMap[index][that.entities[i].id]++;
 
-			nodeTimeMap[index] = nodes.length;
+
+
+			//if the timemap doesn't have a value for the current time
+//			if(!countTimeMap[index]){
+//				countTimeMap[index] = {};
+//			}
+
+
+			if(node.handle === 'Abo_Danh4774'){
+				console.log('STOP');
+			}
+
+			node.count ++;
+			node.countArray[index] = node.count;
+
+			//countTimeMap[index][that.entities[i].id] = nodes[entityMap[that.entities[i].id]].count;
+
+
 			
 			
 			if(that.entities[i].status_id){
@@ -118,10 +106,17 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 					    target = entityMap[that.entities[i].id];
 				    }else{
 					    //If there is a reply but there isn't an existing node, create node for that user.
-					    var node = createNode({handle: that.entities[i].reply_to_user_handle, id: that.entities[i].reply_to_user_id});
-					    nodes.push(node);
+					    var node;
+					    if(entityMap[that.entities[i].id]){
+						    node = nodes[entityMap[that.entities[i].id]];
+					    }else{
+						    node = createNode({handle: that.entities[i].reply_to_user_handle, id: that.entities[i].reply_to_user_id}, size);
+						    nodes.push(node);
+						    entityMap[node.id] = nodes.length-1;
+					    }
+
 					    statuses[that.entities[i].reply_to_status_id] = node.id;
-					    entityMap[node.id] = nodes.length-1;
+
 					    sourceId = statuses[that.entities[i].reply_to_status_id];
 					    source = entityMap[sourceId];
 					    target = entityMap[that.entities[i].id];
@@ -146,21 +141,33 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 				    linkCountTimeMap[index][sourceId][targetId]++;
 				}
 			}
-
-			
+			nodeTimeMap[index] = nodes.length;
 		}
 		while(index < size){
 			nodeTimeMap[index] = nodes.length;
 			linkTimeMap[index] = links.length;
 			index++;
 		}
+
+		for(var i=0; i<nodes.length; i++){
+			for(var j=1; j<nodes[i].countArray.length; j++){
+				if(nodes[i].countArray[j] === 0){
+					nodes[i].countArray[j] = nodes[i].countArray[j-1];
+				}
+			}
+
+		}
+
+
+
 	}
 
-	function createNode(entity){
+	function createNode(entity, size){
 		return {
 			handle: entity.handle,
-			count: 0,
-			id: entity.id
+			countArray: Array.apply(null, new Array(size)).map(Number.prototype.valueOf,0),
+			id: entity.id,
+			count: 0
 		}
 	}
 

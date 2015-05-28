@@ -9,8 +9,8 @@ angular.module('neon-trends-node').directive('node', function () {
 
 
 			scope.$watchCollection('data', function(newValues, oldValues){
-				if (newValues.nodes.length === oldValues.nodes.length && newValues.links.length === oldValues.links.length && (newValues.counts || newValues.linkCounts)){
-					update(newValues.counts, newValues.linkCounts);
+				if (newValues.nodes.length === oldValues.nodes.length && newValues.links.length === oldValues.links.length && (newValues.linkCounts)){
+					update(newValues.index, newValues.linkCounts);
 				}
 				else if (newValues.nodes.length > oldValues.nodes.length || newValues.links.length > oldValues.links.length) {
 					for (var i = oldValues.nodes.length; i< newValues.nodes.length; i++){
@@ -19,11 +19,11 @@ angular.module('neon-trends-node').directive('node', function () {
 					for (var i = oldValues.links.length; i< newValues.links.length; i++){
 						addLink(newValues.links[i].source , newValues.links[i].target );
 					}
-					update(newValues.counts, newValues.linkCounts);
+					update(newValues.index, newValues.linkCounts);
 				}else if (newValues.nodes.length < oldValues.nodes.length || newValues.links.length < oldValues.links.length){
 					removeNodes(newValues.nodes.length);
 					removeLinks(newValues.links.length);
-					update(newValues.counts, newValues.linkCounts);
+					update(newValues.index,  newValues.linkCounts);
 				}
 
 			})
@@ -105,7 +105,10 @@ angular.module('neon-trends-node').directive('node', function () {
 				var theta = randomTheta();
 				var y = center.x +(radius*Math.sin(theta));
 				var x = center.y +(radius*Math.cos(theta));
-				nodes.push({"id":node.id, "handle":node.handle, "volume":0,"retweets":0, "x": x, "y":y});
+
+				nodes.push({"id":node.id, "handle":node.handle, counts: node.countArray, "volume":0,"retweets":0, "x": x, "y":y});
+
+
 			}
 
 			function removeNodes(index) {
@@ -150,7 +153,8 @@ angular.module('neon-trends-node').directive('node', function () {
 			}
 
 
-			var update = function (counts, linkCounts) {
+
+		var update = function (index, linkCounts) {
 				var link = svg.select("#links").selectAll(".link")
 					.data(links,
 					function(d) {
@@ -186,12 +190,11 @@ angular.module('neon-trends-node').directive('node', function () {
 				var theta = randomTheta();
 
 
-				if (counts) {
-					node.filter(function (d) {
-						return counts[d.id] !== undefined;
-					}).attr("fill", function(d){return "black"})
-						.call(function(d){pulse(d, counts)});
-				}
+
+					node.attr("fill", function(d){return "black"})
+						.filter(function(d){return d.counts[index] !== d.volume})
+						.call(function(d){pulse(d, index)});
+
 
 				if(linkCounts){
 					node.filter(function (d) {
@@ -229,11 +232,11 @@ angular.module('neon-trends-node').directive('node', function () {
 				container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 			}
 
-			function pulse(d, counts) {
+			function pulse(d, index) {
 				d.transition()
 					.duration(500)
 					.attr("r", function (d) {
-						d.volume = counts[d.id] + d.volume;
+						d.volume = d.counts[index];
 						return calculateRadius(d.volume) * 2;
 					})
 					.transition()
