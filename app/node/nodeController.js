@@ -1,7 +1,7 @@
 angular.module("neon-trends-node").controller('NodeController', ["$scope", function ($scope) {
 
 	var eventBus = new neon.eventing.EventBus();
-	var nodes =[], links= [], entities, nodeTimeMap, linkTimeMap, countTimeMap, statuses ={}, linkCountTimeMap;
+	var nodes =[], links= [], entities, nodeTimeMap, linkTimeMap, countTimeMap, statuses ={}, linkCountTimeMap, hasLinkMap = {};
 
 	var that = this;
 	var previousIndex =-1;
@@ -40,7 +40,25 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 		var nodeIndex = nodeTimeMap[index];
 		var linkIndex = linkTimeMap[index];
 
-		$scope.data = {nodes :nodes.slice(0,nodeIndex), links:links.slice(0,linkIndex), index:index, linkCounts: linkCountTimeMap[index]};
+		//if going forward in time
+		if(index > previousIndex){
+			$scope.data = {nodes :nodes.slice(0,nodeIndex), links:links.slice(0,linkIndex), index:index, linkCounts: linkCountTimeMap[index]};
+		}else{
+			var count = {};
+			var linkCounts = {};
+			angular.forEach(linkCountTimeMap[previousIndex], function(value, key){
+				for(var i = index; i>=0; i--){
+					if(linkCountTimeMap[i] ? linkCountTimeMap[i][key] : false){
+						linkCounts[key] = -value;
+						break;
+					}
+				}
+			})
+			$scope.data = {nodes :nodes.slice(0,nodeIndex), links:links.slice(0,linkIndex), index:index, linkCounts: linkCounts};
+		}
+		previousIndex = index;
+
+
 
 	}
 
@@ -132,6 +150,9 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 					    linkCountTimeMap[index][sourceId][targetId] = 0;
 				    }
 
+				    hasLinkMap[source] = true;
+				    hasLinkMap[target] = true;
+
 				    linkCountTimeMap[index][sourceId][targetId]++;
 				}
 			}
@@ -144,6 +165,11 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 		}
 
 		for(var i=0; i<nodes.length; i++){
+			if(!hasLinkMap[i]){
+				nodes[i].orphaned = true;
+			}else{
+				nodes[i].orphaned = false;
+			}
 			for(var j=1; j<nodes[i].countArray.length; j++){
 				if(nodes[i].countArray[j] === 0){
 					nodes[i].countArray[j] = nodes[i].countArray[j-1];
