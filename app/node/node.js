@@ -38,7 +38,9 @@ angular.module('neon-trends-node').directive('node', function () {
 				.attr('class', 'node-tip')
 				.offset([-10, 0])
 				.html(function(d) {
-					return "<table class='table table-bordered'><caption>@" + d.handle + "</caption><thead><tr><th>Tweets</th><th>Retweets</th></tr></thead><tbody><tr><td>" + d.volume + "</td><td>" + d.retweets + "</td></tr></tbody></table>";
+					return "<div class='tiptable'><div class='handleLabel'>@" + d.handle + "</div>" +
+						"<div class='tipTableRow'><div class='tiptablecount'>"+ d.volume + "</div><div class='tiptablecount'>"+ d.retweets + "</div></div>" +
+						"<div class='tipTableRow'><div class='tiptablelabel'>Tweets</div><div class='tiptablelabel'>Retweets</div></div></div>";
 
 				});
 
@@ -108,11 +110,11 @@ angular.module('neon-trends-node').directive('node', function () {
 
 			function addNode(node) {
 				var theta = randomTheta();
-				var y = center.y;
-				var x = center.x;
+//				var y = center.y;
+//				var x = center.x;
 
-//				var y = center.x +(radius*Math.sin(theta));
-//				var x = center.y +(radius*Math.cos(theta));
+				var y = center.x +(radius*Math.sin(theta));
+				var x = center.y +(radius*Math.cos(theta));
 
 				nodes.push({"id":node.id, "handle":node.handle,orphaned:node.orphaned, counts: node.countArray, "volume":0,"retweets":0, "x": x, "y":y});
 			}
