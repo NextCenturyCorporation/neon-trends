@@ -150,7 +150,7 @@ angular.module('neon-trends-search').directive('search', function (Connection, $
 					}
 
 
-					var queryAds = new neon.query.Query().selectFrom($rootScope.connection.database, $rootScope.connection.collection).where(and(clauses)).limit(1000).sortBy(model.time, neon.query.ASCENDING);
+					var queryAds = new neon.query.Query().selectFrom($rootScope.connection.database, $rootScope.connection.collection).where(and(clauses)).limit(10000).sortBy(model.time, neon.query.ASCENDING);
 
 					scope.search.q = {name: "", text: ""};
 					Connection.executeQuery(queryAds, function (result) {
