@@ -56,10 +56,12 @@ angular.module('neon-trends-node').directive('node', function () {
 				.enter().append("svg:marker")    // This section adds in the arrows
 				.attr("id", String)
 					.attr("viewBox", "0 -5 10 10")
+					.attr("class", "arrow")
+//					.attr("fill", "#777")
 					.attr("refX", 0)
 					.attr("refY", 0)
-					.attr("markerWidth", 3)
-					.attr("markerHeight", 3)
+					.attr("markerWidth", 5)
+					.attr("markerHeight", 5)
 					.attr("orient", "auto")
 				.append("svg:path")
 					.attr("d", "M0,-5L10,0L0,5");
@@ -86,14 +88,14 @@ angular.module('neon-trends-node').directive('node', function () {
 //					}
 //				})
 //				.friction(0.7)
-				.gravity(.05)
+				.gravity(.07)
 //				.linkDistance(function(d){
 //					return 100/(d.source.weight +1);
 //				})
 				.linkDistance(50)
-				.charge(function (d){
-					return -200/(d.weight+1);
-				})
+//				.charge(function (d){
+//					return -200/(d.weight+1);
+//				})
 				.charge(-50)
 				.size([width, height]);
 
@@ -109,8 +111,8 @@ angular.module('neon-trends-node').directive('node', function () {
 				var y = center.y;
 				var x = center.x;
 
-				var y = center.x +(radius*Math.sin(theta));
-				var x = center.y +(radius*Math.cos(theta));
+//				var y = center.x +(radius*Math.sin(theta));
+//				var x = center.y +(radius*Math.cos(theta));
 
 				nodes.push({"id":node.id, "handle":node.handle,orphaned:node.orphaned, counts: node.countArray, "volume":0,"retweets":0, "x": x, "y":y});
 			}
@@ -184,8 +186,16 @@ angular.module('neon-trends-node').directive('node', function () {
 					})
 					.attr("id", function(d){return d.id})
 					.attr("fill", function(d){if(d.counts[d.counts.length-1] > 0){return "black"}else{return "grey"}})
+					.on('mouseover', function(d){
+							d.fixed=true;
+						})
 					.on('mouseover', tip.show)
+
+					.on('mouseout', function(d){
+							d.fixed=false;
+						})
 					.on('mouseout', tip.hide)
+
 					.on('click', nodeSelected)
 					.call(force.drag);
 
@@ -248,7 +258,7 @@ angular.module('neon-trends-node').directive('node', function () {
 					.duration(400)
 					.attr("r", function (d) {
 						d.volume = d.counts[index];
-						return calculateRadius(d.volume) * 2;
+						return calculateRadius(d.volume) +10;
 					})
 					.transition()
 					.duration(400)
