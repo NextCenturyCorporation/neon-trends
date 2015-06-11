@@ -116,7 +116,7 @@ angular.module('neon-trends-node').directive('node', function () {
 				var y = center.x +(radius*Math.sin(theta));
 				var x = center.y +(radius*Math.cos(theta));
 
-				nodes.push({"id":node.id, "handle":node.handle,orphaned:node.orphaned, counts: node.countArray, "volume":0,"retweets":0, "x": x, "y":y});
+				nodes.push({"id":node.id, "handle":node.handle,orphaned:node.orphaned, group: node.group, counts: node.countArray, "volume":0,"retweets":0, "x": x, "y":y});
 			}
 
 			function removeNodes(index) {
@@ -159,8 +159,6 @@ angular.module('neon-trends-node').directive('node', function () {
 						return i
 				};
 			}
-
-
 
 		var update = function (index, linkCounts) {
 				var link = svg.select("#links").selectAll(".link")

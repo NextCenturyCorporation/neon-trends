@@ -69,6 +69,8 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 		countTimeMap = new Array(size);
 		linkCountTimeMap = new Array(size);
 		var linksMap = {};
+		var groups = {};
+		var group =0;
 		var index;
 
 		var entityMap = {};
@@ -105,7 +107,7 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 
 
 			
-			
+			// if has link
 			if(that.entities[i].status_id){
 				statuses[that.entities[i].status_id] = that.entities[i].id;
     			if(statuses[that.entities[i].reply_to_status_id] || that.entities[i].reply_to_status_id){
@@ -154,6 +156,39 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 				    hasLinkMap[target] = true;
 
 				    linkCountTimeMap[index][sourceId][targetId]++;
+
+				    //figure out groups
+				    if(nodes[source].group >= 0 && !nodes[target].group){
+					    nodes[target].group = nodes[source].group;
+					    groups[nodes[source].group].push(target);
+				    }else if(nodes[target].group >= 0 && !nodes[source].group){
+					    nodes[source].group = nodes[target].group;
+					    groups[nodes[target].group].push(source);
+
+				    }else if(nodes[source].group >= 0 && nodes[target].group >= 0 && nodes[source].group !== nodes[target].group){
+					    var largerGroup, smallerGroup;
+						if(groups[nodes[source].group].length >= groups[nodes[target].group].length){
+							smallerGroup = nodes[target].group;
+							largerGroup = nodes[source].group;
+						}else{
+							smallerGroup = nodes[source].group;
+							largerGroup = nodes[target].group;
+						}
+
+					    for(var k=0; k<groups[smallerGroup].length; k++){
+						    nodes[groups[smallerGroup][k]].group = largerGroup;
+					    }
+					    groups[largerGroup] = groups[largerGroup].concat(groups[smallerGroup]);
+						groups[smallerGroup] = undefined;
+
+
+				    }else if(!nodes[source].group && !nodes[target].group){
+					    nodes[source].group = group;
+					    nodes[target].group = group;
+					    groups[group] = [];
+					    groups[group].push(source, target);
+					    group++;
+				    }
 				}
 			}
 			nodeTimeMap[index] = nodes.length;
@@ -175,10 +210,32 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 					nodes[i].countArray[j] = nodes[i].countArray[j-1];
 				}
 			}
-
 		}
 
+		var groupArray = [];
+		//sort groups so that the larger groups are closer to index 0
+		angular.forEach(groups, function(value){
+			if(value){
+				groupArray.push(value);
+			}
 
+		});
+
+		groupArray = groupArray.sort(function(a,b){
+			if(a.length > b.length){
+				return -1;
+			}
+			if(a.length < b.length){
+				return 1;
+			}
+			return 0;
+		});
+
+		angular.forEach(groupArray, function(value, key){
+			angular.forEach(value, function(node){
+				node.group=key;
+			});
+		});
 
 	}
 
