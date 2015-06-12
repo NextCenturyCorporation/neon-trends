@@ -150,6 +150,7 @@ angular.module('neon-trends-search').directive('search', function (Connection, $
 					}
 
 
+					//neon doesn't support array indexes for getting fields, so you need to create aa placehold key as needed
 					var queryAds = new neon.query.Query().withFields(Object.keys(model).map(function(k){return model[k]})).selectFrom($rootScope.connection.database, $rootScope.connection.collection).where(and(clauses)).limit(10000).sortBy(model.time, neon.query.ASCENDING);
 
 					scope.search.q = {name: "", text: ""};
