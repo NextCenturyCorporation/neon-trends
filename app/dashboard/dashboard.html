@@ -1,31 +1,23 @@
 <div ng-if="$root.connection" >
-	<!--<h1>Cognate<sup>3</sup></h1>-->
+
 	<div class="row fixedContainer">
 		<search range="range" results-handler="onResults"></search>
 	</div>
+
 	<!--
 	<small>Range is {{corpus.range.start}} to {{corpus.range.end}}</small>
 	-->
 
 	<div class="row main">
+		<!--
 		<div class="col-xs-2 fixedContainer">
 			<filter range="range"></filter>
 		</div>
+		-->
 
 
-
-		<div class="col-xs-7 col-xs-push-2 fixedContainer" >
-			<ul class="nav nav-tabs" ng-init="active='Map'">
-				<li role="presentation" ng-class="{active: active ==='Map'}"><a ng-click="active='Map'">Map</a></li>
-				<li role="presentation" ng-class="{active: active==='Node'}"><a ng-click="active='Node'">Graph</a></li>
-			</ul>
-			<div ng-show="active==='Map'" ng-controller="NodeController">
-				<div id="map" class="map" openlayers map="map" source="source">
-
-				</div>
-			</div>
-			<div ng-show="active==='Node'" ng-controller="NodeController">
-				nodes:{{data.nodes.length}} links:{{data.links.length}}
+		<div class="col-xs-9 fixedContainer" >
+			<div ng-controller="NodeController">
 				<node data="data"></node>
 			</div>
 

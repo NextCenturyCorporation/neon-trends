@@ -31,8 +31,15 @@ angular.module('neon-trends-node').directive('node', function () {
 			var zoom = d3.behavior.zoom()
 				.on("zoom", zoomed);
 
-			var width = 700,
-				height = 500;
+			var drag = d3.behavior.drag()
+				.origin(function(d) { return d; })
+				.on("dragstart", dragstarted)
+				.on("drag", dragged)
+				.on("dragend", dragended);
+
+			var width = $(d3.select("node").node().parentElement).width(),
+				//100 is the height of the timeline
+				height = window.innerHeight - 100 - $(d3.select("node").node().parentElement).offset().top;
 
 			var tip = d3.tip()
 				.attr('class', 'node-tip')
@@ -47,13 +54,13 @@ angular.module('neon-trends-node').directive('node', function () {
 			var svg = d3.select("node").append("svg")
 				.attr("width", width)
 				.attr("height", height)
-				.append("g")
+			var container = svg.append("g")
 				.style("pointer-events", "all")
 				.call(zoom);
 
-			svg.call(tip);
+			container.call(tip);
 
-			svg.append("svg:defs").selectAll("marker")
+			container.append("svg:defs").selectAll("marker")
 				.data(["end"])      // Different link/path types can be defined here
 				.enter().append("svg:marker")    // This section adds in the arrows
 				.attr("id", String)
@@ -68,12 +75,12 @@ angular.module('neon-trends-node').directive('node', function () {
 				.append("svg:path")
 					.attr("d", "M0,-5L10,0L0,5");
 
-			var rect = svg.append("rect")
+			var rect = container.append("rect")
 				.attr("width", width)
 				.attr("height", height)
 				.style("fill", "none");
 
-			var container = svg.append("g");
+			var container = container.append("g");
 			var arrows = container.append("g").attr("id", "links");
 			var dots = container.append("g").attr("id", "nodes");
 
@@ -161,19 +168,22 @@ angular.module('neon-trends-node').directive('node', function () {
 			}
 
 		var update = function (index, linkCounts) {
-				var link = svg.select("#links").selectAll(".link")
+				var link = container.select("#links").selectAll(".link")
 					.data(links,
 					function(d) {
 						return d.source.id + "-" + d.target.id; });
 
-				link.enter().insert("polyline")
+				link.enter().insert("path")
 					.attr("stroke-width", 2)
 					.attr("class", "link")
+					.transition()
+					.duration(2000)
+					.ease("linear")
 					.attr("marker-mid", "url(#end)");
 
 				link.exit().remove();
 
-				var node = svg.select("#nodes").selectAll(".node")
+				var node = container.select("#nodes").selectAll(".node")
 					.data(nodes, function(d) { return d.id;});
 
 				var nodeEnter = node.enter().append("circle")
@@ -197,7 +207,7 @@ angular.module('neon-trends-node').directive('node', function () {
 					.on('mouseout', tip.hide)
 
 					.on('click', nodeSelected)
-					.call(force.drag);
+					.call(drag);
 
 				nodeEnter.append("title")
 					.attr("dx", 12)
@@ -231,8 +241,8 @@ angular.module('neon-trends-node').directive('node', function () {
 //						.attr("x2", function(d) { return d.target.x; })
 //						.attr("y2", function(d) { return d.target.y; });
 
-					link.attr("points", function(d) {
-						return d.source.x + "," + d.source.y + " " +
+					link.attr("d", function(d) {
+						return "M" + d.source.x + "," + d.source.y + " " +
 							(d.source.x + d.target.x)/2 + "," + (d.source.y + d.target.y)/2 + " " +
 							d.target.x + "," + d.target.y; });
 
@@ -306,6 +316,33 @@ angular.module('neon-trends-node').directive('node', function () {
 						return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
 					});
 				};
+			}
+
+			function updateWindow(){
+				var width = $(d3.select("node").node().parentElement).width(),
+					//100 is the height of the timeline
+			    height = window.innerHeight - 100 - $(d3.select("node").node().parentElement).offset().top;
+				svg.attr("width", width).attr("height", height);
+				rect.attr("width", width).attr("height", height);
+
+			}
+			window.onresize = updateWindow;
+
+
+
+			function dragstarted(d) {
+				d3.event.sourceEvent.stopPropagation();
+				force.start();
+			}
+
+			function dragged(d) {
+				d.x = d3.event.x;
+				d.y = d3.event.y;
+				d3.select(this).attr("transform","translate(" + d.x + "," + d.y + ")");
+
+			}
+
+			function dragended(d) {
 			}
 
 		}
