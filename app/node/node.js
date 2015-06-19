@@ -50,6 +50,10 @@ angular.module('neon-trends-node').directive('node', function () {
 						"<div class='tipTableRow'><div class='tiptablelabel'>Tweets</div><div class='tiptablelabel'>Retweets</div></div></div>";
 
 				});
+			var totalNodes = 1000;
+			var totalGroups=500;
+
+			var clusters = new Array(totalGroups);
 
 			var svg = d3.select("node").append("svg")
 				.attr("width", width)
@@ -88,23 +92,9 @@ angular.module('neon-trends-node').directive('node', function () {
 			var radius = 500;
 
 			var force = d3.layout.force()
-//				.gravity(function(d) {
-//					if (d.weight === 0) {
-//						return .05;
-//					}
-//					else {
-//						return .2
-//					}
-//				})
-//				.friction(0.7)
-				.gravity(.07)
-//				.linkDistance(function(d){
-//					return 100/(d.source.weight +1);
-//				})
+				.friction(0.8)
+				.gravity(.1)
 				.linkDistance(50)
-//				.charge(function (d){
-//					return -200/(d.weight+1);
-//				})
 				.charge(-50)
 				.size([width, height]);
 
@@ -117,13 +107,30 @@ angular.module('neon-trends-node').directive('node', function () {
 
 			function addNode(node) {
 				var theta = randomTheta();
-//				var y = center.y;
-//				var x = center.x;
 
-				var y = center.x +(radius*Math.sin(theta));
-				var x = center.y +(radius*Math.cos(theta));
+				//supposed to initialize near the group they're supposed to end up in...
+				var i = !node.group ? totalGroups+1: node.group;
+				var radius = i*5;
+				var x= Math.cos(i / totalGroups * 2 * Math.PI) * radius + center.x + Math.random();
+				var y= Math.sin(i / totalGroups * 2 * Math.PI) * radius + center.y + Math.random();
 
-				nodes.push({"id":node.id, "handle":node.handle,orphaned:node.orphaned, group: node.group, counts: node.countArray, "volume":0,"retweets":0, "x": x, "y":y});
+//				var x = center.x +(radius*Math.cos(theta));
+//				var y = center.y +(radius*Math.sin(theta));
+				var tempNode ={
+					"id":node.id,
+					"handle":node.handle,
+					orphaned:node.orphaned,
+					group: node.group,
+					counts: node.countArray,
+					"volume":0,
+					"retweets":0,
+					"x": x,
+					"y":y}
+
+
+				if (i<=totalGroups && !clusters[node.group]) clusters[node.group] = tempNode;
+
+				nodes.push(tempNode);
 			}
 
 			function removeNodes(index) {
@@ -248,7 +255,14 @@ angular.module('neon-trends-node').directive('node', function () {
 
 					//node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 
-					node.each(collide(0.5)).attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+//					node.each(collide(0.5)).attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+					node
+						.each(cluster(.1))
+//						.each(collide(.5))
+						.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+//						.attr("cx", function(d) { return d.x; })
+//						.attr("cy", function(d) { return d.y; });
 				});
 
 				force.start();
@@ -291,6 +305,30 @@ angular.module('neon-trends-node').directive('node', function () {
 			var padding = 1, // separation between circles
 				rad=8;
 
+			function cluster(alpha) {
+				return function(d) {
+					if(d.group){
+						var cluster = clusters[d.group];
+						if (cluster === d) return;
+						var x = d.x - cluster.x,
+							y = d.y - cluster.y,
+							l = Math.sqrt(x * x + y * y),
+							r = d.volume + cluster.volume;
+						console.log(x);
+						if(!x){
+							console.log("x: " +x +" y: "+y + " l: " + l +" r:" +r);
+						}
+						if (l != r) {
+							l = (l - r) / l * alpha;
+							d.x -= x *= l;
+							d.y -= y *= l;
+							cluster.x += x;
+							cluster.y += y;
+						}
+					}
+
+				};
+			}
 			function collide(alpha) {
 
 				var quadtree = d3.geom.quadtree(force.nodes());
