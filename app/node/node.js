@@ -17,7 +17,7 @@ angular.module('neon-trends-node').directive('node', function () {
 						addNode(newValues.nodes[i]);
 					}
 					for (var i = oldValues.links.length; i< newValues.links.length; i++){
-						addLink(newValues.links[i].source , newValues.links[i].target );
+						addLink(newValues.links[i].source , newValues.links[i].target , newValues.links[i].content);
 					}
 					update(newValues.index, newValues.linkCounts);
 				}else if (newValues.nodes.length < oldValues.nodes.length || newValues.links.length < oldValues.links.length){
@@ -115,6 +115,10 @@ angular.module('neon-trends-node').directive('node', function () {
 				eventBus.publish("NodeSelected", d, "node-graph");
 			}
 
+			function linkSelected(d){
+				eventBus.publish("LinkSelected", d, "node-graph");
+			}
+
 			function addNode(node) {
 				var theta = randomTheta();
 //				var y = center.y;
@@ -123,7 +127,7 @@ angular.module('neon-trends-node').directive('node', function () {
 				var y = center.x +(radius*Math.sin(theta));
 				var x = center.y +(radius*Math.cos(theta));
 
-				nodes.push({"id":node.id, "handle":node.handle,orphaned:node.orphaned, group: node.group, counts: node.countArray, "volume":0,"retweets":0, "x": x, "y":y});
+				nodes.push({"id":node.id, "handle":node.handle,orphaned:node.orphaned, group: node.group, counts: node.countArray, "volume":0,"retweets":0, "x": x, "y":y, "content":node.content});
 			}
 
 			function removeNodes(index) {
@@ -147,9 +151,9 @@ angular.module('neon-trends-node').directive('node', function () {
 				}
 			}
 
-			function addLink(sourceId, targetId) {
+			function addLink(sourceId, targetId,content) {
 //				if((sourceNode !== undefined) && (targetNode !== undefined)) {
-					links.push({"source": nodes[sourceId], "target": nodes[targetId] });
+					links.push({"source": nodes[sourceId], "target": nodes[targetId], "content":content });
 //				}
 			}
 
@@ -176,10 +180,8 @@ angular.module('neon-trends-node').directive('node', function () {
 				link.enter().insert("path")
 					.attr("stroke-width", 2)
 					.attr("class", "link")
-					.transition()
-					.duration(2000)
-					.ease("linear")
-					.attr("marker-mid", "url(#end)");
+					.attr("marker-mid", "url(#end)")
+					.on('click', linkSelected);
 
 				link.exit().remove();
 

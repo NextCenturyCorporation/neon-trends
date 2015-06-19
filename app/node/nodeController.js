@@ -1,9 +1,8 @@
 angular.module("neon-trends-node").controller('NodeController', ["$scope", function ($scope) {
 
 	var eventBus = new neon.eventing.EventBus();
-	var nodes =[], links= [], entities, nodeTimeMap, linkTimeMap, countTimeMap, statuses ={}, linkCountTimeMap, hasLinkMap = {};
+	var nodes =[], links= [], entities, nodeTimeMap, linkTimeMap, countTimeMap, linkCountTimeMap, hasLinkMap = {}, content={}, bucket;
 
-	var that = this;
 	var previousIndex =-1;
 	var range = $scope.range;
 
@@ -16,27 +15,27 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 			parseTimeFrame(range.start);
 	}, "node");
 
-	eventBus.subscribe("onDataReturned", function(entities){
-		that.entities = entities;
+	eventBus.subscribe("onDataReturned", function(data){
+		entities = data;
 	}, "node");
 
 
-	eventBus.subscribe("timeBucket", function (bucket) {
-		that.bucket = bucket;
+	eventBus.subscribe("timeBucket", function (data) {
+		bucket = data;
 		nodes =[];
 		links= [];
-		statuses ={};
+		content ={};
 		createNodeData(bucket);
 //		parseTimeFrame(range.endDate);
 //		$scope.$apply();
 	}, "node");
 
-	eventBus.subscribe("createdTemporalFilter", function (range) {
-		that.range = range;
+	eventBus.subscribe("createdTemporalFilter", function (data) {
+		range = data;
 	}, "node");
 
 	function parseTimeFrame(date){
-		var index =Math.floor(moment(date).diff(moment(range.startDate)) / moment.duration(that.bucket.unitCount, that.bucket.intervalUnit))
+		var index =Math.floor(moment(date).diff(moment(range.startDate)) / moment.duration(bucket.unitCount, bucket.intervalUnit))
 		var nodeIndex = nodeTimeMap[index];
 		var linkIndex = linkTimeMap[index];
 
@@ -73,10 +72,12 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 		var group =0;
 		var index;
 
+
 		var entityMap = {};
 		var lastIndex = 0;
-		for(var i= 0, length=that.entities.length; i<length;i++){
-			index = Math.floor(moment(that.entities[i].time).diff(moment(range.startDate)) / moment.duration(bucket.unitCount, bucket.intervalUnit));
+		for(var i= 0, length=entities.length; i<length;i++){
+			var entity = entities[i];
+			index = Math.floor(moment(entity.time).diff(moment(range.startDate)) / moment.duration(bucket.unitCount, bucket.intervalUnit));
 
 			//fill in rest of arrays
 			while(lastIndex < index-1){
@@ -86,65 +87,64 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 			}
 
 			//if entity hasn't previous been seen, create and add
-			if(!(entityMap[that.entities[i].id] > -1) ){
-				node = createNode(that.entities[i], size)
+			if(!(entityMap[entity.id] > -1) ){
+				node = createNode(entity, size)
 				nodes.push(node);
-				entityMap[that.entities[i].id] = nodes.length-1;
+				entityMap[entity.id] = nodes.length-1;
 			}else{
-				node = nodes[entityMap[that.entities[i].id]];
+				node = nodes[entityMap[entity.id]];
 			}
 
 
 
-			//if the timemap doesn't have a value for the current time
-//			if(!countTimeMap[index]){
-//				countTimeMap[index] = {};
-//			}
 			node.count ++;
 			node.countArray[index] = node.count;
-
-			//countTimeMap[index][that.entities[i].id] = nodes[entityMap[that.entities[i].id]].count;
-
+			content[entity.id] = entity;
+			node.content.push(entity.status_id);
 
 			
 			// if has link
-			if(that.entities[i].status_id){
-				statuses[that.entities[i].status_id] = that.entities[i].id;
-    			if(statuses[that.entities[i].reply_to_status_id] || that.entities[i].reply_to_status_id){
+			if(entity.status_id){
+    			if(content[entity.reply_to_status_id] || entity.reply_to_status_id){
 				    var sourceId, source, targetId, target, key;
 
 
-				    if(statuses[that.entities[i].reply_to_status_id]){
-					    sourceId = statuses[that.entities[i].reply_to_status_id];
+				    if(content[entity.reply_to_status_id]){
+					    sourceId = content[entity.reply_to_status_id].id;
 					    source = entityMap[sourceId];
-					    target = entityMap[that.entities[i].id];
+					    target = entityMap[entity.id];
 				    }else{
 					    //If there is a reply but there isn't an existing node, create node for that user.
 					    var node;
-					    if(entityMap[that.entities[i].reply_to_user_id]){
-						    node = nodes[entityMap[that.entities[i].reply_to_user_id]];
+					    if(entityMap[entity.reply_to_user_id]){
+						    node = nodes[entityMap[entity.reply_to_user_id]];
 					    }else{
-						    node = createNode({handle: that.entities[i].reply_to_user_handle, id: that.entities[i].reply_to_user_id}, size);
+						    node = createNode({handle: entity.reply_to_user_handle, id: entity.reply_to_user_id}, size);
 						    nodes.push(node);
 						    entityMap[node.id] = nodes.length-1;
 					    }
 
-					    statuses[that.entities[i].reply_to_status_id] = node.id;
+					    content[entity.reply_to_status_id] = {statusId: entity.reply_to_status_id, id: entity.reply_to_user_id, handle: entity.reply_to_user_handle, description:"unknown"};
 
-					    sourceId = statuses[that.entities[i].reply_to_status_id];
+					    sourceId = content[entity.reply_to_status_id].id;
 					    source = entityMap[sourceId];
-					    target = entityMap[that.entities[i].id];
+					    target = entityMap[entity.id];
 				    }
 
-				    targetId = that.entities[i].id;
+				    targetId = entity.id;
 
 					if(!linkCountTimeMap[index]){
 						linkCountTimeMap[index] = {};
 					}
+
+				    var key = sourceId + "_" + targetId;
+
 				    if(!linksMap[key]){
-					    links.push({"source": source, "target": target});
+					    links.push({"source": source, "target": target, "content":[]});
 					    linkTimeMap[index] = links.length;
+					    linksMap[key] = links.length-1;
 				    }
+				    links[linksMap[key]].content.push(entity.status_id);
 				    if(!linkCountTimeMap[index][sourceId]){
 					    linkCountTimeMap[index][sourceId] = {};
 				    }
@@ -244,7 +244,16 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 			handle: entity.handle,
 			countArray: Array.apply(null, new Array(size)).map(Number.prototype.valueOf,0),
 			id: entity.id,
-			count: 0
+			count: 0,
+			content: []
+		}
+	}
+
+	function createLink(source, target){
+		return {
+			'source':source,
+			'target': target,
+			'content': []
 		}
 	}
 

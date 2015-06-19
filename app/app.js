@@ -14,7 +14,6 @@ angular.module('neon-trends', ['neon-trends-search', 'ngRoute', 'neon', 'neon-tr
 	});
 });
 
-angular.module('cesium', []);
 angular.module('neon-trends-timeline', []);
 angular.module('neon-trends-node', []);
 angular.module('neon-trends-search', ['neon', 'neon-trends-calendar']);
