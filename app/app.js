@@ -11,6 +11,9 @@ angular.module('neon-trends', ['neon-trends-search', 'ngRoute', 'neon', 'neon-tr
 			database: data.database,
 			collection: data.collection
 		}
+		$.getJSON(data.model, function (data) {
+			$rootScope.model = data;
+		});
 	});
 });
 

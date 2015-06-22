@@ -1,4 +1,5 @@
 {
 	"database": "xdata",
-	"collection": "network"
+	"collection": "justpaste_urls",
+	"model" : "model/justpaste_urls.json"
 }
