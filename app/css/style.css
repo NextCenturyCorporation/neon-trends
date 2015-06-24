@@ -207,6 +207,15 @@ clauses > .boxed {
 	stroke: #CCC;
 	stroke-opacity: .6;
 }
+.selected {
+	stroke: #F00;
+	stroke-opacity: .6;
+}
+
+.hover {
+	stroke: #00F;
+	stroke-opacity: .6;
+}
 
 .node-tip {
 	line-height: 1;

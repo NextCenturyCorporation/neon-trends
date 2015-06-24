@@ -1,7 +1,7 @@
 angular.module("neon-trends-node").controller('NodeController', ["$scope", function ($scope) {
 
 	var eventBus = new neon.eventing.EventBus();
-	var nodes =[], links= [], entities, nodeTimeMap, linkTimeMap, countTimeMap, linkCountTimeMap, hasLinkMap = {}, content={}, bucket;
+	var nodes =[], links= [], entities, nodeTimeMap, linkTimeMap, countTimeMap, linkCountTimeMap, hasLinkMap = {}, content={}, bucket, conversationId=0;
 
 	var previousIndex =-1;
 	var range = $scope.range;
@@ -79,6 +79,8 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 			var entity = entities[i];
 			index = Math.floor(moment(entity.time).diff(moment(range.startDate)) / moment.duration(bucket.unitCount, bucket.intervalUnit));
 
+
+
 			//fill in rest of arrays
 			while(lastIndex < index-1){
 				nodeTimeMap[lastIndex] = nodes.length;
@@ -99,10 +101,12 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 
 			node.count ++;
 			node.countArray[index] = node.count;
-			content[entity.id] = entity;
-			node.content.push(entity.status_id);
+			//some data has dupes in it, so check id before pushing
+			if(!content[entity.status_id]){
+				content[entity.status_id] = entity;
+				node.content.push(entity.status_id);
+			}
 
-			
 			// if has link
 			if(entity.status_id){
     			if(content[entity.reply_to_status_id] || entity.reply_to_status_id){
@@ -124,12 +128,20 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 						    entityMap[node.id] = nodes.length-1;
 					    }
 
-					    content[entity.reply_to_status_id] = {statusId: entity.reply_to_status_id, id: entity.reply_to_user_id, handle: entity.reply_to_user_handle, description:"unknown"};
+					    content[entity.reply_to_status_id] = {status_id: entity.reply_to_status_id, id: entity.reply_to_user_id, handle: entity.reply_to_user_handle, description:"unknown"};
 
 					    sourceId = content[entity.reply_to_status_id].id;
 					    source = entityMap[sourceId];
 					    target = entityMap[entity.id];
 				    }
+
+				    //create conversationId
+				    var convoId = addToConversation(entity);
+
+				    //add conversation to nodes
+				    nodes[entityMap[entity.reply_to_user_id]].conversations.add(convoId);
+				    nodes[entityMap[entity.id]].conversations.add(convoId);
+
 
 				    targetId = entity.id;
 
@@ -140,11 +152,13 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 				    var key = sourceId + "_" + targetId;
 
 				    if(!linksMap[key]){
-					    links.push({"source": source, "target": target, "content":[]});
+					    links.push({"source": source, "target": target, "content":[], "conversations": new Set()});
 					    linkTimeMap[index] = links.length;
 					    linksMap[key] = links.length-1;
 				    }
 				    links[linksMap[key]].content.push(entity.status_id);
+				    links[linksMap[key]].conversations.add(convoId);
+
 				    if(!linkCountTimeMap[index][sourceId]){
 					    linkCountTimeMap[index][sourceId] = {};
 				    }
@@ -192,6 +206,7 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 				}
 			}
 			nodeTimeMap[index] = nodes.length;
+
 		}
 		while(index < size){
 			nodeTimeMap[index] = nodes.length;
@@ -239,21 +254,26 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 
 	}
 
+	function addToConversation(entity){
+		if(entity.reply_to_status_id){
+			if(!content[entity.reply_to_status_id].conversationId > -1){
+				content[entity.reply_to_status_id].conversationId = conversationId++;
+			}
+			entity.conversationId = content[entity.reply_to_status_id].conversationId;
+		}else{
+			entity.conversationId = conversationId++;
+		}
+		return entity.conversationId;
+	}
+
 	function createNode(entity, size){
 		return {
 			handle: entity.handle,
 			countArray: Array.apply(null, new Array(size)).map(Number.prototype.valueOf,0),
 			id: entity.id,
 			count: 0,
-			content: []
-		}
-	}
-
-	function createLink(source, target){
-		return {
-			'source':source,
-			'target': target,
-			'content': []
+			content: [],
+			conversations: new Set()
 		}
 	}
 

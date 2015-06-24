@@ -6,7 +6,7 @@ angular.module('neon-trends-node').directive('node', function () {
 		},
 		link:function(scope, elem){
 			var eventBus = new neon.eventing.EventBus();
-
+			var selectedConversations = new Set(), hoveredConversations = new Set();
 
 			scope.$watchCollection('data', function(newValues, oldValues){
 				if (newValues.nodes.length === oldValues.nodes.length && newValues.links.length === oldValues.links.length && (newValues.linkCounts)){
@@ -17,7 +17,7 @@ angular.module('neon-trends-node').directive('node', function () {
 						addNode(newValues.nodes[i]);
 					}
 					for (var i = oldValues.links.length; i< newValues.links.length; i++){
-						addLink(newValues.links[i].source , newValues.links[i].target , newValues.links[i].content);
+						addLink(newValues.links[i]);
 					}
 					update(newValues.index, newValues.linkCounts);
 				}else if (newValues.nodes.length < oldValues.nodes.length || newValues.links.length < oldValues.links.length){
@@ -113,10 +113,22 @@ angular.module('neon-trends-node').directive('node', function () {
 
 			function nodeSelected(d){
 				eventBus.publish("NodeSelected", d, "node-graph");
+				selectedConversations = d.conversations;
+				update();
+			}
+			function nodeHover(d){
+				hoveredConversations = d.conversations;
+				update();
 			}
 
 			function linkSelected(d){
 				eventBus.publish("LinkSelected", d, "node-graph");
+				selectedConversations = d.conversations;
+				update();
+			}
+			function linkHover(d){
+				hoveredConversations = d.conversations;
+				update();
 			}
 
 			function addNode(node) {
@@ -127,7 +139,7 @@ angular.module('neon-trends-node').directive('node', function () {
 				var y = center.x +(radius*Math.sin(theta));
 				var x = center.y +(radius*Math.cos(theta));
 
-				nodes.push({"id":node.id, "handle":node.handle,orphaned:node.orphaned, group: node.group, counts: node.countArray, "volume":0,"retweets":0, "x": x, "y":y, "content":node.content});
+				nodes.push({"id":node.id, "handle":node.handle,orphaned:node.orphaned, group: node.group, counts: node.countArray, "volume":0,"retweets":0, "x": x, "y":y, "content":node.content, "conversations": node.conversations});
 			}
 
 			function removeNodes(index) {
@@ -151,10 +163,8 @@ angular.module('neon-trends-node').directive('node', function () {
 				}
 			}
 
-			function addLink(sourceId, targetId,content) {
-//				if((sourceNode !== undefined) && (targetNode !== undefined)) {
-					links.push({"source": nodes[sourceId], "target": nodes[targetId], "content":content });
-//				}
+			function addLink(link) {
+				links.push({"source": nodes[link.source], "target": nodes[link.target], "content":link.content, "conversations": link.conversations });
 			}
 
 			var findNode = function (id) {
@@ -181,7 +191,9 @@ angular.module('neon-trends-node').directive('node', function () {
 					.attr("stroke-width", 2)
 					.attr("class", "link")
 					.attr("marker-mid", "url(#end)")
-					.on('click', linkSelected);
+					.on('click', linkSelected)
+					.on('mouseover', linkHover)
+					.on('mouseout', function(){hoveredConversations= new Set; update();});
 
 				link.exit().remove();
 
@@ -199,14 +211,18 @@ angular.module('neon-trends-node').directive('node', function () {
 					.attr("id", function(d){return d.id})
 					.attr("fill", function(d){if(d.counts[d.counts.length-1] > 0){return "black"}else{return "grey"}})
 					.on('mouseover', function(d){
-							d.fixed=true;
-						})
-					.on('mouseover', tip.show)
+						d.fixed=true;
+						nodeHover(d);
+						tip.show(d);
+
+					})
 
 					.on('mouseout', function(d){
-							d.fixed=false;
-						})
-					.on('mouseout', tip.hide)
+						d.fixed=false;
+						tip.hide(d);
+						hoveredConversations = new Set();
+						update();
+					})
 
 					.on('click', nodeSelected)
 					.call(drag);
@@ -219,9 +235,30 @@ angular.module('neon-trends-node').directive('node', function () {
 				var theta = randomTheta();
 
 
-
+				if(index){
 					node.filter(function(d){return d.counts[index] !== d.volume})
 						.call(function(d){pulse(d, index)});
+				}
+
+				    node.attr("fill", function(d){
+					    if(selectedConversations.size && isIntersect(d.conversations, selectedConversations)){
+						    return "red";
+					    }else if(hoveredConversations.size && isIntersect(d.conversations, hoveredConversations)){
+						    return "blue";
+					    }
+					    else if(d.counts[d.counts.length-1] > 0){
+						    return "black"
+					    }else{
+						    return "grey"}
+				    })
+					link.attr("class", function(d){
+						if(selectedConversations.size && isIntersect(d.conversations, selectedConversations)){
+							return "link selected";
+						}else if(hoveredConversations.size && isIntersect(d.conversations, hoveredConversations)){
+							return "link hover";
+						}else{
+							return "link"}
+					})
 
 
 				if(linkCounts){
@@ -347,6 +384,23 @@ angular.module('neon-trends-node').directive('node', function () {
 			function dragended(d) {
 			}
 
+			function isIntersect(setA, setB){
+				if(setA.size >= setB.size){
+					for (var id of setB.keys()) {
+						if(setA.has(id)){
+							return true;
+						}
+					}
+					return false;
+				}else{
+					for (var id of setA.keys()) {
+						if(setB.has(id)){
+							return true;
+						}
+					}
+					return false;
+				}
+			}
 		}
 	}
 });

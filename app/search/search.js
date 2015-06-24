@@ -163,7 +163,7 @@ angular.module('neon-trends-search').directive('search', function (Connection, $
 						});
 
 						entity.time = moment(entity.time).toDate(),
-
+						entity._id = tweet._id;
 						entities.push(entity);
 
 					});
