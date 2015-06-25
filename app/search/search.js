@@ -162,8 +162,7 @@ angular.module('neon-trends-search').directive('search', function (Connection, $
 							entity[key] = getValueFromObject(tweet, value);
 						});
 
-						entity.time = moment(entity.time).toDate(),
-						entity._id = tweet._id;
+						entity.time = new Date(entity.time);
 						entities.push(entity);
 
 					});

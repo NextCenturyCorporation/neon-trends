@@ -3,7 +3,10 @@ angular.module('neon-trends-content', ['infinite-scroll']).directive('content', 
 		restrict: 'E',
 		templateUrl: "content/stream.html",
 		scope: {
-			initRange:"=range"
+			initRange:"=range",
+			content:"=",
+			conversations:"="
+
 		},
 		link:function(scope, element){
 			var eventBus = new neon.eventing.EventBus();
@@ -15,16 +18,7 @@ angular.module('neon-trends-content', ['infinite-scroll']).directive('content', 
 			var selectedNode;
 			scope.now = moment("2000-1-1");
 
-			//$(element.parent()).height($(element.parent().siblings()[1]).height())
 
-
-			eventBus.subscribe("onDataReturned", function(entities){
-				entitiesMap = createMap(entities);
-				//scope.entities = allEntities.slice(0,buffer);
-				//scope.last = buffer;
-				//scope.$apply();
-
-			}, "content");
 
 			eventBus.subscribe("createdTemporalFilter", function (obj) {
 				range = obj;
@@ -40,20 +34,26 @@ angular.module('neon-trends-content', ['infinite-scroll']).directive('content', 
 			}, "content");
 
 			eventBus.subscribe("NodeSelected", function (node) {
+				window.scrollTo(0,0);
 				scope.entities.length =0;
-				angular.forEach(node.content, function(id){
-					scope.entities.push(entitiesMap[id]);
-				});
+				for (var id of node.conversations.keys()) {
+					angular.forEach(scope.conversations[id], function(status_id){
+						scope.entities.push(scope.content[status_id]);
+					});
+				}
 
 				scope.$apply();
 
 			}, "content");
 
-			eventBus.subscribe("LinkSelected", function (node) {
+			eventBus.subscribe("LinkSelected", function (link) {
+				window.scrollTo(0,0);
 				scope.entities.length =0;
-				angular.forEach(node.content, function(id){
-					scope.entities.push(entitiesMap[id]);
-				});
+				for (var id of link.conversations.keys()) {
+					angular.forEach(scope.conversations[id], function(status_id){
+						scope.entities.push(scope.content[status_id]);
+					});
+				}
 				scope.$apply();
 
 			}, "content");

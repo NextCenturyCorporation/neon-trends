@@ -1,7 +1,18 @@
 angular.module("neon-trends-node").controller('NodeController', ["$scope", function ($scope) {
 
 	var eventBus = new neon.eventing.EventBus();
-	var nodes =[], links= [], entities, nodeTimeMap, linkTimeMap, countTimeMap, linkCountTimeMap, hasLinkMap = {}, content={}, bucket, conversationId=0;
+	var nodes =[], //array of nodes (users). indexed by order of appearance.
+		links= [], // array of links. indexed by order of appearance
+		entities, //object that contains each entity. key is status_id
+		nodeTimeMap, //for each time bucket, which index (and lower) of node should appear in graph
+		linkTimeMap, //for each time bucket, which index (and lower) of link should appear in graph
+		linkCountTimeMap, //for each bucket, the count of each link
+		hasLinkMap = {},  //for determining nodes that have links
+		bucket,
+		conversationId=0;
+
+	$scope.content={}; //each entity mapped to its status
+	$scope.conversations = {}; //contains an array of keys of content by key of conversation
 
 	var previousIndex =-1;
 	var range = $scope.range;
@@ -24,7 +35,7 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 		bucket = data;
 		nodes =[];
 		links= [];
-		content ={};
+		$scope.content ={};
 		createNodeData(bucket);
 //		parseTimeFrame(range.endDate);
 //		$scope.$apply();
@@ -65,7 +76,6 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 		var size = Math.floor(moment(range.endDate).diff(moment(range.startDate)) / moment.duration(bucket.unitCount, bucket.intervalUnit));
 		nodeTimeMap = Array.apply(null, new Array(size)).map(Number.prototype.valueOf,0);
 		linkTimeMap = Array.apply(null, new Array(size)).map(Number.prototype.valueOf,0);
-		countTimeMap = new Array(size);
 		linkCountTimeMap = new Array(size);
 		var linksMap = {};
 		var groups = {};
@@ -102,19 +112,19 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 			node.count ++;
 			node.countArray[index] = node.count;
 			//some data has dupes in it, so check id before pushing
-			if(!content[entity.status_id]){
-				content[entity.status_id] = entity;
+			if(!$scope.content[entity.status_id]){
+				$scope.content[entity.status_id] = entity;
 				node.content.push(entity.status_id);
 			}
 
 			// if has link
 			if(entity.status_id){
-    			if(content[entity.reply_to_status_id] || entity.reply_to_status_id){
+    			if($scope.content[entity.reply_to_status_id] || entity.reply_to_status_id){
 				    var sourceId, source, targetId, target, key;
 
 
-				    if(content[entity.reply_to_status_id]){
-					    sourceId = content[entity.reply_to_status_id].id;
+				    if($scope.content[entity.reply_to_status_id]){
+					    sourceId = $scope.content[entity.reply_to_status_id].id;
 					    source = entityMap[sourceId];
 					    target = entityMap[entity.id];
 				    }else{
@@ -128,9 +138,9 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 						    entityMap[node.id] = nodes.length-1;
 					    }
 
-					    content[entity.reply_to_status_id] = {status_id: entity.reply_to_status_id, id: entity.reply_to_user_id, handle: entity.reply_to_user_handle, description:"unknown"};
+					    $scope.content[entity.reply_to_status_id] = {status_id: entity.reply_to_status_id, id: entity.reply_to_user_id, handle: entity.reply_to_user_handle, description:"unknown"};
 
-					    sourceId = content[entity.reply_to_status_id].id;
+					    sourceId = $scope.content[entity.reply_to_status_id].id;
 					    source = entityMap[sourceId];
 					    target = entityMap[entity.id];
 				    }
@@ -141,6 +151,12 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 				    //add conversation to nodes
 				    nodes[entityMap[entity.reply_to_user_id]].conversations.add(convoId);
 				    nodes[entityMap[entity.id]].conversations.add(convoId);
+
+				    if(!$scope.conversations[convoId]){
+					    $scope.conversations[convoId] = new Set();
+				    }
+				    $scope.conversations[convoId].add(entity.status_id);
+				    $scope.conversations[convoId].add(entity.reply_to_status_id);
 
 
 				    targetId = entity.id;
@@ -256,10 +272,10 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 
 	function addToConversation(entity){
 		if(entity.reply_to_status_id){
-			if(content[entity.reply_to_status_id].conversationId === undefined){
-				content[entity.reply_to_status_id].conversationId = conversationId++;
+			if($scope.content[entity.reply_to_status_id].conversationId === undefined){
+				$scope.content[entity.reply_to_status_id].conversationId = conversationId++;
 			}
-			entity.conversationId = content[entity.reply_to_status_id].conversationId;
+			entity.conversationId = $scope.content[entity.reply_to_status_id].conversationId;
 		}else{
 			entity.conversationId = conversationId++;
 		}
