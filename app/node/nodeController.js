@@ -256,7 +256,7 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 
 	function addToConversation(entity){
 		if(entity.reply_to_status_id){
-			if(!content[entity.reply_to_status_id].conversationId > -1){
+			if(content[entity.reply_to_status_id].conversationId === undefined){
 				content[entity.reply_to_status_id].conversationId = conversationId++;
 			}
 			entity.conversationId = content[entity.reply_to_status_id].conversationId;
