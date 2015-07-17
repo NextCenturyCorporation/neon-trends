@@ -148,9 +148,11 @@ angular.module("neon-trends-node").controller('NodeController', ["$scope", funct
 				    //create conversationId
 				    var convoId = addToConversation(entity);
 
-				    //add conversation to nodes
-				    nodes[entityMap[entity.reply_to_user_id]].conversations.add(convoId);
-				    nodes[entityMap[entity.id]].conversations.add(convoId);
+				    //add conversation to nodes if we have a node for that user.
+				    if(entityMap[entity.reply_to_user_id]){
+					    nodes[entityMap[entity.reply_to_user_id]].conversations.add(convoId);
+					    nodes[entityMap[entity.id]].conversations.add(convoId);
+					}
 
 				    if(!$scope.conversations[convoId]){
 					    $scope.conversations[convoId] = new Set();
